@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ["stylelint-config-tailwindcss"],
+  extends: ["stylelint-config-standard", "stylelint-config-tailwindcss"],
   rules: {
     "at-rule-no-unknown": [
       true,
@@ -7,11 +7,13 @@ module.exports = {
         ignoreAtRules: [
           "tailwind",
           "apply",
+          "layer",
           "variants",
           "responsive",
           "screen",
         ],
       },
     ],
+    "no-empty-source": null,
   },
 };

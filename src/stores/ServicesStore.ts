@@ -24,6 +24,18 @@ export class ServicesStore {
         : 1;
     this.services.push({ ...service, id: newId });
   }
+
+  updateService(serviceId: number, updated: Partial<Omit<Service, "id">>) {
+    const service = this.services.find((s) => s.id === serviceId);
+    if (service) {
+      if (updated.name !== undefined) service.name = updated.name;
+      if (updated.price !== undefined) service.price = updated.price;
+    }
+  }
+
+  deleteService(serviceId: number) {
+    this.services = this.services.filter((s) => s.id !== serviceId);
+  }
 }
 
 export const servicesStore = new ServicesStore();

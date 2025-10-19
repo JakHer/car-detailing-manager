@@ -1,26 +1,50 @@
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "menu";
+  variant?: "primary" | "secondary" | "menu" | "destructive" | "outline";
+  size?: "sm" | "md" | "icon";
 }
 
 export default function Button({
   variant = "primary",
+  size = "md",
   className = "",
   ...props
 }: ButtonProps) {
-  const base = `px-4 py-2 rounded transition-colors duration-300 w-full sm:w-auto
-    focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-1 cursor-pointer
-    flex items-center justify-center gap-2`;
+  const base = `
+    inline-flex items-center justify-center gap-2
+    rounded-md font-medium transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-1
+    cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed
+  `;
+
+  const sizeClasses =
+    size === "sm"
+      ? "px-3 py-1 text-sm"
+      : size === "icon"
+      ? "p-2 w-9 h-9"
+      : "px-4 py-2 text-base";
 
   const variantClasses =
     variant === "primary"
-      ? `bg-gray-800 hover:bg-gray-700 text-white dark:bg-gray-700 dark:hover:bg-gray-600`
+      ? `bg-gray-800 hover:bg-gray-700 text-gray-100 
+         dark:bg-gray-700 dark:hover:bg-gray-600`
       : variant === "secondary"
-      ? `bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-500`
+      ? `bg-gray-200 hover:bg-gray-300 text-gray-800 
+         dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-600`
       : variant === "menu"
-      ? `bg-transparent text-white hover:text-cyan-400 dark:text-white dark:hover:text-cyan-400`
+      ? `bg-transparent text-gray-800 hover:text-cyan-500 
+         dark:text-gray-100 dark:hover:text-cyan-400`
+      : variant === "destructive"
+      ? `bg-red-600 hover:bg-red-700 text-gray-100 
+         dark:bg-red-500 dark:hover:bg-red-700`
+      : variant === "outline"
+      ? `border border-gray-300 hover:bg-gray-100 
+         dark:border-gray-600 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100`
       : "";
 
   return (
-    <button className={`${base} ${variantClasses} ${className}`} {...props} />
+    <button
+      className={`${base} ${sizeClasses} ${variantClasses} ${className}`}
+      {...props}
+    />
   );
 }

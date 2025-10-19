@@ -1,59 +1,69 @@
-import Button from "../../components/Button/Button";
+import React from "react";
+import type { OrderStatus } from "../../stores/OrdersStore";
 
-interface CardProps {
+export interface CardProps {
   title: string;
-  status?: "W toku" | "Zakończone";
-  children: React.ReactNode;
-  className?: string;
-  onAction?: () => void;
+  status?: OrderStatus;
   actionLabel?: string;
+  onAction?: () => void;
+  children?: React.ReactNode;
+  className?: string;
 }
+
+export const STATUS_COLORS: Record<
+  OrderStatus,
+  { bg: string; text: string; hex: string }
+> = {
+  Nowe: { bg: "bg-blue-200", text: "text-blue-800", hex: "#3b82f6" },
+  Przyjęte: { bg: "bg-cyan-200", text: "text-cyan-800", hex: "#06b6d4" },
+  "W toku": { bg: "bg-yellow-200", text: "text-yellow-800", hex: "#facc15" },
+  "Czeka na odbiór": {
+    bg: "bg-purple-200",
+    text: "text-purple-800",
+    hex: "#a78bfa",
+  },
+  Zakończone: { bg: "bg-green-200", text: "text-green-800", hex: "#16a34a" },
+  Anulowane: { bg: "bg-red-200", text: "text-red-800", hex: "#ef4444" },
+};
 
 export default function Card({
   title,
   status,
-  children,
-  className,
-  onAction,
   actionLabel,
+  onAction,
+  children,
+  className = "",
 }: CardProps) {
   return (
     <div
-      className={`bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors duration-300 ${
-        className ?? ""
-      }`}
+      className={`border rounded-xl p-5 shadow-sm bg-white dark:bg-gray-800 w-full transition-colors duration-300 ${className}`}
     >
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[70%]">
           {title}
         </h3>
+
         {status && (
           <span
-            className={`font-semibold ${
-              status === "Zakończone"
-                ? "text-green-600 dark:text-green-400"
-                : "text-yellow-600 dark:text-yellow-400"
-            }`}
+            className={`flex-shrink-0 px-2 py-1 text-sm font-semibold rounded ${STATUS_COLORS[status].bg} ${STATUS_COLORS[status].text}`}
           >
             {status}
           </span>
         )}
       </div>
 
-      <div className="text-gray-700 dark:text-gray-300 transition-colors duration-300">
+      <div className="text-gray-800 dark:text-gray-100 space-y-1 overflow-hidden ">
         {children}
       </div>
 
-      {onAction && actionLabel && (
-        <div className="mt-4">
-          <Button
-            variant="secondary" // uses your Button's secondary colors
-            onClick={onAction}
-            className="w-full text-sm py-1"
-          >
-            {actionLabel}
-          </Button>
-        </div>
+      {actionLabel && onAction && (
+        <button
+          className="mt-3 px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          onClick={onAction}
+        >
+          {actionLabel}
+        </button>
       )}
     </div>
   );

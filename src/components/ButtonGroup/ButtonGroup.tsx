@@ -1,0 +1,28 @@
+import React from "react";
+
+interface ButtonGroupProps {
+  children: React.ReactNode;
+  className?: string;
+  align?: "left" | "center" | "right";
+}
+
+export default function ButtonGroup({
+  children,
+  className = "",
+  align = "left",
+}: ButtonGroupProps) {
+  const alignment =
+    align === "center"
+      ? "justify-center"
+      : align === "right"
+      ? "justify-end"
+      : "justify-start";
+
+  return (
+    <div
+      className={`flex flex-wrap gap-2 mt-2 mr-2 mb-2 ${alignment} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
