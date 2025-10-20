@@ -29,29 +29,46 @@ const Dashboard = observer(() => {
     }))
     .filter((entry) => entry.value > 0);
 
+  const getWeekRange = () => {
+    const today = new Date();
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    return { monday, sunday };
+  };
+
+  const generateWeekDates = (start: Date, end: Date) => {
+    const dates: string[] = [];
+    let current = new Date(start);
+    while (current <= end) {
+      dates.push(current.toLocaleDateString());
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  };
+
   const dailyOrdersData = () => {
-    const emptyStatusCounts = Object.keys(STATUS_COLORS).reduce(
-      (acc, status) => ({ ...acc, [status]: 0 }),
-      {} as Record<OrderStatus, number>
-    );
-
-    if (ordersStore.orders.length === 0) return [];
-
-    const orderDates = ordersStore.orders.map((o) =>
-      new Date(o.createdAt).setHours(0, 0, 0, 0)
-    );
-    const minDate = Math.min(...orderDates);
-    const maxDate = Math.max(...orderDates);
+    const { monday, sunday } = getWeekRange();
+    const statusKeys = Object.keys(STATUS_COLORS) as OrderStatus[];
 
     const counts: Record<string, Record<OrderStatus, number>> = {};
-    for (let d = minDate; d <= maxDate; d += 24 * 60 * 60 * 1000) {
-      const dateStr = new Date(d).toLocaleDateString();
-      counts[dateStr] = { ...emptyStatusCounts };
-    }
+    generateWeekDates(monday, sunday).forEach((dateStr) => {
+      counts[dateStr] = {} as Record<OrderStatus, number>;
+      statusKeys.forEach((status) => (counts[dateStr][status] = 0));
+    });
 
     ordersStore.orders.forEach((order) => {
       const dateStr = new Date(order.createdAt).toLocaleDateString();
-      counts[dateStr][order.status]++;
+      if (counts[dateStr]) {
+        counts[dateStr][order.status]++;
+      }
     });
 
     return Object.entries(counts)
@@ -98,7 +115,7 @@ const Dashboard = observer(() => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {ordersStore.orders.length > 0 && (
-          <Card title="Zlecenia w czasie (podział na statusy)">
+          <Card title="Zlecenia w tym tygodniu (podział na statusy)">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dailyOrdersData()}>
                 <XAxis

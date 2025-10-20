@@ -1,4 +1,5 @@
 import { makeAutoObservable, reaction } from "mobx";
+import { MOCK_SERVICES } from "../mocks/mocks";
 
 export interface Service {
   id: number;
@@ -20,11 +21,7 @@ export class ServicesStore {
         this.services = [];
       }
     } else {
-      this.services = [
-        { id: 1, name: "Mycie zewnętrzne", price: 100 },
-        { id: 2, name: "Woskowanie", price: 200 },
-        { id: 3, name: "Detailing wnętrza", price: 250 },
-      ];
+      this.services = MOCK_SERVICES;
     }
 
     reaction(

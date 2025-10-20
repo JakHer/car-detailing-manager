@@ -34,6 +34,7 @@ const OrderSchema = Yup.object().shape({
     .min(1, "Wybierz przynajmniej jedną usługę"),
   status: Yup.string().required("Wybierz status"),
   notes: Yup.string().optional(),
+  createdAt: Yup.string().required("Wybierz datę zlecenia"),
 });
 
 export default function OrderModal({
@@ -47,6 +48,9 @@ export default function OrderModal({
     serviceIds: order?.services.map((s) => s.id) || [],
     status: order?.status || "Przyjęte",
     notes: order?.notes || "",
+    createdAt: order
+      ? new Date(order.createdAt).toISOString().slice(0, 16)
+      : new Date().toISOString().slice(0, 16),
   };
 
   const handleSubmit = (values: typeof initialValues) => {
@@ -55,12 +59,15 @@ export default function OrderModal({
       values.serviceIds.includes(s.id)
     );
 
+    const createdAtISO = new Date(values.createdAt).toISOString();
+
     if (order && mode === "edit") {
       ordersStore.updateOrder(order.id, {
         client,
         services,
         status: values.status,
         notes: values.notes,
+        createdAt: createdAtISO,
       });
     } else if (mode === "add") {
       ordersStore.addOrder({
@@ -68,6 +75,7 @@ export default function OrderModal({
         services,
         status: values.status,
         notes: values.notes,
+        createdAt: createdAtISO,
       });
     }
 
@@ -115,7 +123,7 @@ export default function OrderModal({
       validateOnChange={false}
       validateOnBlur={true}
     >
-      {({ values, errors, touched, setFieldValue, submitForm }) => (
+      {({ values, setFieldValue, errors, touched, submitForm }) => (
         <BaseModal
           isOpen={isOpen}
           onClose={onClose}
@@ -124,6 +132,7 @@ export default function OrderModal({
           onSave={() => submitForm()}
           renderBody={() => (
             <Form className="flex flex-col space-y-3">
+              {/* Client select */}
               <div className="relative">
                 <Field
                   as="select"
@@ -158,6 +167,7 @@ export default function OrderModal({
                 />
               </div>
 
+              {/* Services checkboxes */}
               <div className="flex flex-col max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 px-3 py-2 rounded space-y-1">
                 {servicesStore.services.map((s) => (
                   <label
@@ -187,6 +197,7 @@ export default function OrderModal({
                 )}
               </div>
 
+              {/* Status select */}
               <Field
                 as="select"
                 name="status"
@@ -209,12 +220,41 @@ export default function OrderModal({
                 className="text-red-500 text-sm mt-1"
               />
 
+              {/* Notes */}
               <Field
                 as="textarea"
                 name="notes"
                 placeholder="Notatki"
                 className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
               />
+
+              <div className="relative">
+                <label className="text-sm font-medium mb-1 block dark:text-gray-100 text-gray-900">
+                  Data zlecenia
+                </label>
+                <input
+                  type="datetime-local"
+                  name="createdAt"
+                  value={values.createdAt}
+                  onChange={(e) => setFieldValue("createdAt", e.target.value)}
+                  className={clsx(
+                    "border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+                    errors.createdAt && touched.createdAt
+                      ? "border-red-500 animate-shake"
+                      : "border-gray-300 dark:border-gray-600"
+                  )}
+                />
+                {errors.createdAt && touched.createdAt && (
+                  <div className="absolute right-2 top-2.5 text-red-500">
+                    <FiAlertCircle size={18} title={errors.createdAt} />
+                  </div>
+                )}
+                <ErrorMessage
+                  name="createdAt"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
             </Form>
           )}
         />

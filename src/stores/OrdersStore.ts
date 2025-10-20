@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from "mobx";
 import type { Client } from "./ClientsStore";
+import { MOCK_ORDERS, MOCK_SERVICES } from "../mocks/mocks";
 
 export type OrderStatus =
   | "Nowe"
@@ -39,29 +40,7 @@ export class OrdersStore {
         this.orders = [];
       }
     } else {
-      this.orders = [
-        {
-          id: 1,
-          client: { id: 1, name: "Jan Kowalski", phone: "" },
-          services: [{ id: 1, name: "Mycie zewnętrzne", price: 100 }],
-          status: "Przyjęte",
-          createdAt: new Date("2025-10-15T10:00:00Z").toISOString(),
-          updatedAt: new Date("2025-10-15T10:00:00Z").toISOString(),
-          notes: "",
-        },
-        {
-          id: 2,
-          client: { id: 2, name: "Anna Nowak", phone: "" },
-          services: [
-            { id: 3, name: "Detailing wnętrza", price: 250 },
-            { id: 4, name: "Woskowanie", price: 150 },
-          ],
-          status: "Zakończone",
-          createdAt: new Date("2025-10-16T14:30:00Z").toISOString(),
-          updatedAt: new Date("2025-10-16T14:30:00Z").toISOString(),
-          notes: "",
-        },
-      ];
+      this.orders = MOCK_ORDERS;
     }
 
     reaction(
@@ -72,12 +51,11 @@ export class OrdersStore {
     );
   }
 
-  addOrder(order: Omit<Order, "id" | "createdAt" | "updatedAt">) {
+  addOrder(order: Omit<Order, "id" | "updatedAt"> & { createdAt: string }) {
     const newId =
       this.orders.length > 0
         ? Math.max(...this.orders.map((o) => o.id)) + 1
         : 1;
-    const now = new Date().toISOString();
 
     const servicesSnapshot = order.services.map((s) => ({
       id: s.id,
@@ -85,10 +63,11 @@ export class OrdersStore {
       price: s.price,
     }));
 
+    const now = new Date().toISOString();
+
     this.orders.push({
       ...order,
       id: newId,
-      createdAt: now,
       updatedAt: now,
       services: servicesSnapshot,
       notes: order.notes || "",
@@ -106,22 +85,24 @@ export class OrdersStore {
 
   updateOrder(
     orderId: number,
-    updated: Partial<Omit<Order, "id" | "createdAt">>
+    updated: Partial<Omit<Order, "id">> & { createdAt?: string }
   ) {
     const order = this.orders.find((o) => o.id === orderId);
-    if (order) {
-      if (updated.client) order.client = updated.client;
-      if (updated.services) {
-        order.services = updated.services.map((s) => ({
-          id: s.id,
-          name: s.name,
-          price: s.price,
-        }));
-      }
-      if (updated.status) order.status = updated.status;
-      if (updated.notes !== undefined) order.notes = updated.notes;
-      order.updatedAt = new Date().toISOString();
+    if (!order) return;
+
+    if (updated.client) order.client = updated.client;
+    if (updated.services) {
+      order.services = updated.services.map((s) => ({
+        id: s.id,
+        name: s.name,
+        price: s.price,
+      }));
     }
+    if (updated.status) order.status = updated.status;
+    if (updated.notes !== undefined) order.notes = updated.notes;
+    if (updated.createdAt) order.createdAt = updated.createdAt;
+
+    order.updatedAt = new Date().toISOString();
   }
 
   deleteOrder(orderId: number) {

@@ -1,4 +1,5 @@
 import { makeAutoObservable, reaction } from "mobx";
+import { MOCK_CLIENTS } from "../mocks/mocks";
 
 export interface Client {
   id: number;
@@ -22,21 +23,7 @@ export class ClientsStore {
         this.clients = [];
       }
     } else {
-      this.clients = [
-        {
-          id: 1,
-          name: "Jan Kowalski",
-          phone: "123-456-789",
-          email: "jan@example.com",
-          notes: "VIP klient",
-        },
-        {
-          id: 2,
-          name: "Anna Nowak",
-          phone: "987-654-321",
-          email: "anna@example.com",
-        },
-      ];
+      this.clients = MOCK_CLIENTS;
     }
 
     reaction(
