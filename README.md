@@ -60,11 +60,7 @@ to see the app.
 
 ```bash
 npm run build
-```
-
-## or
-
-```bash
+# or
 yarn build
 ```
 
