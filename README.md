@@ -1,6 +1,8 @@
 # Car Detailing Manager
 
-A web application for managing car detailing services, clients, and orders.  
+[![Netlify Status](https://api.netlify.com/api/v1/badges/36e4cac7-71ec-469b-83da-8c4746c27ddb/deploy-status)](https://app.netlify.com/projects/car-detailing-manager/deploys)
+
+-A web application for managing car detailing services, clients, and orders.  
 Built with **React**, **TypeScript**, **MobX**, **TailwindCSS**, and **Framer Motion**.
 
 ---
