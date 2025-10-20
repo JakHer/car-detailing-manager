@@ -50,15 +50,17 @@ export default function ServiceModal({
   };
 
   const renderForm = () => (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4 overflow-visible">
       <input
-        className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
+        className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                   px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
         placeholder="Nazwa usługi"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
       <input
-        className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
+        className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                   px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
         type="number"
         placeholder="Cena"
         value={price}
@@ -109,12 +111,12 @@ export default function ServiceModal({
     <Transition show={isOpen} as={Fragment}>
       <Dialog
         onClose={onClose}
-        className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center"
+        className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center px-2 sm:px-0"
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 z-50 overflow-y-auto relative">
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 z-50 overflow-visible relative">
           <Title className="text-xl font-bold mb-4">{title}</Title>
-          <div className="overflow-y-auto max-h-[70vh]">
+          <div className="overflow-visible max-h-[70vh]">
             {mode === "delete" ? renderDelete() : renderForm()}
           </div>
         </div>

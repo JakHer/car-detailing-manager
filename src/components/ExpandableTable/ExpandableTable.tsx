@@ -102,22 +102,24 @@ export default function ExpandableTable<T>({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <Card title={title as string} className="w-full">
+              <Card title={title as string} className="w-full ">
                 {columns.slice(1).map((col, idx) => (
                   <div key={idx} className="flex justify-between mb-1">
                     <span className="font-semibold text-gray-700 dark:text-gray-200">
                       {col.header}:
                     </span>
-                    <span
-                      className="truncate max-w-[65%]"
-                      title={
-                        typeof col.render(item) === "string"
-                          ? (col.render(item) as string)
-                          : undefined
-                      }
-                    >
-                      {col.render(item)}
-                    </span>
+                    <div className="max-w-[65%] overflow-x-auto">
+                      <span
+                        className="whitespace-nowrap"
+                        title={
+                          typeof col.render(item) === "string"
+                            ? (col.render(item) as string)
+                            : undefined
+                        }
+                      >
+                        {col.render(item)}
+                      </span>
+                    </div>
                   </div>
                 ))}
 

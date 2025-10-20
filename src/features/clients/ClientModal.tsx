@@ -94,7 +94,7 @@ export default function ClientModal({
     <Transition show={isOpen} as={Fragment}>
       <Dialog
         onClose={onClose}
-        className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center"
+        className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center px-2 sm:px-0"
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 z-50 overflow-y-auto relative">

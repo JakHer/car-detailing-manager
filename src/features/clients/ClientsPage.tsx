@@ -103,9 +103,9 @@ const ClientsPage = observer(() => {
                 idx % 2 === 0
                   ? "bg-gray-50 dark:bg-gray-700"
                   : "bg-gray-100 dark:bg-gray-600"
-              } text-gray-700 dark:text-gray-200`}
+              } text-gray-700 dark:text-gray-200 overflow-x-auto whitespace-nowrap block`}
             >
-              <span className="whitespace-nowrap">
+              <span className="truncate whitespace-nowrap text-sm">
                 {new Date(order.createdAt).toLocaleDateString()}
               </span>
 
@@ -123,22 +123,23 @@ const ClientsPage = observer(() => {
                 ))}
               </div>
 
-              <span className="font-medium whitespace-nowrap">
+              <span className="font-medium whitespace-nowrap truncate">
                 {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
               </span>
 
-              <div className="flex items-start">
+              <div className="flex items-start max-w-[150px]">
                 <span
-                  className={`inline-block px-2 py-0.5 text-sm font-semibold rounded whitespace-nowrap ${
+                  className={`inline-block px-2 py-0.5 text-sm font-semibold rounded whitespace-nowrap overflow-hidden truncate max-w-[150px] ${
                     STATUS_COLORS[order.status as OrderStatus]?.bg
                   } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                  title={order.status}
                 >
                   {order.status}
                 </span>
               </div>
 
               <span
-                className="italic text-gray-500 dark:text-gray-400 whitespace-nowrap overflow-hidden truncate"
+                className="italic text-gray-500 dark:text-gray-400 max-w-[150px] truncate block"
                 title={order.notes || "-"}
               >
                 {order.notes || "-"}
