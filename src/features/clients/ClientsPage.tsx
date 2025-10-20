@@ -27,15 +27,15 @@ const ClientsPage = observer(() => {
 
   const columns = [
     { header: "Imię", render: (c: Client) => c.name },
-    { header: "Telefon", render: (c: Client) => c.phone },
-    { header: "Email", render: (c: Client) => c.email },
+    { header: "Telefon", render: (c: Client) => c.phone || "-" },
+    { header: "Email", render: (c: Client) => c.email || "-" },
     {
       header: "Ostatnie zamówienie",
       render: (c: Client) => {
         const orders = ordersStore.orders.filter((o) => o.client.id === c.id);
         return orders.length
           ? new Date(orders[orders.length - 1].createdAt).toLocaleDateString()
-          : "Brak";
+          : "-";
       },
     },
     {
