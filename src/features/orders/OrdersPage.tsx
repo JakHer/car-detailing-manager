@@ -5,13 +5,14 @@ import {
   type Order,
   type OrderStatus,
 } from "../../stores/OrdersStore";
-import Card from "../../components/Card/Card";
-import { motion, AnimatePresence } from "framer-motion";
+import ExpandableTable, {
+  type ExpandableTableColumn,
+} from "../../components/ExpandableTable/ExpandableTable";
+import OrderModal from "./OrderModal";
 import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
-import PageSection from "../../layouts/PageSection/PageSection";
-import OrderModal from "./OrderModal";
-import { FiEdit, FiTrash2, FiPlus, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiEye, FiEyeOff, FiPlus } from "react-icons/fi";
+import { STATUS_COLORS } from "../../components/Card/Card";
 
 const STATUS_OPTIONS: OrderStatus[] = [
   "Nowe",
@@ -29,29 +30,119 @@ const OrdersPage = observer(() => {
   );
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
 
-  const toggleExpand = (id: number) =>
-    setExpandedOrderId(expandedOrderId === id ? null : id);
-
   const openModal = (order: Order | null, mode: "add" | "edit" | "delete") => {
     setModalOrder(order);
     setModalMode(mode);
-  };
-
-  const closeModal = () => {
-    setModalOrder(null);
-    setModalMode("");
   };
 
   const handleStatusChange = (order: Order, newStatus: OrderStatus) => {
     ordersStore.updateOrder(order.id, { status: newStatus });
   };
 
-  const sortedOrders = ordersStore.orders.slice().sort((a, b) => b.id - a.id);
+  const toggleExpand = (id: number) => {
+    setExpandedOrderId(expandedOrderId === id ? null : id);
+  };
 
+  const columns: ExpandableTableColumn<Order>[] = [
+    { header: "Klient", render: (o) => o.client.name },
+    { header: "Telefon", render: (o) => o.client.phone || "-" },
+    {
+      header: "Data",
+      render: (o) => new Date(o.createdAt).toLocaleDateString(),
+    },
+    {
+      header: "Łączna cena",
+      render: (o) => o.services.reduce((s, srv) => s + srv.price, 0) + " zł",
+    },
+    {
+      header: "Status",
+      render: (order) => (
+        <span
+          className={`truncate overflow-hidden whitespace-nowrap inline-block px-2 py-0.5 text-sm font-semibold rounded ${
+            STATUS_COLORS[order.status as OrderStatus]?.bg
+          } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+          style={{ maxWidth: "100%" }}
+        >
+          {order.status}
+        </span>
+      ),
+    },
+  ];
+
+  const renderExpanded = (order: Order) => (
+    <div className="grid gap-2">
+      <div className="flex items-center gap-2">
+        <span className="font-bold">Status:</span>
+        <select
+          value={order.status}
+          onChange={(e) =>
+            handleStatusChange(order, e.target.value as OrderStatus)
+          }
+          className="text-sm w-auto max-w-[150px] border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        >
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
+      <p>{order.notes ? `Notatki: ${order.notes}` : "Brak notatek"}</p>
+      <ul className="list-disc list-inside">
+        {order.services.map((s) => (
+          <li key={s.id}>
+            {s.name} — {s.price} zł
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const renderActions = (order: Order) => (
+    <ButtonGroup align="right">
+      <Button
+        size="icon"
+        variant="secondary"
+        onClick={() => openModal(order, "edit")}
+        title="Edytuj zlecenie"
+      >
+        <FiEdit className="w-4 h-4" />
+      </Button>
+      <Button
+        size="icon"
+        variant="destructive"
+        onClick={() => openModal(order, "delete")}
+        title="Usuń zlecenie"
+      >
+        <FiTrash2 className="w-4 h-4" />
+      </Button>
+      <Button
+        size="icon"
+        variant="outline"
+        onClick={() => toggleExpand(order.id)}
+        title={
+          expandedOrderId === order.id ? "Ukryj szczegóły" : "Pokaż szczegóły"
+        }
+      >
+        {expandedOrderId === order.id ? (
+          <FiEyeOff className="w-4 h-4" />
+        ) : (
+          <FiEye className="w-4 h-4" />
+        )}
+      </Button>
+    </ButtonGroup>
+  );
+
+  const sortedOrders = ordersStore.orders
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   return (
-    <PageSection
-      title="Zlecenia"
-      action={
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Zlecenia</h1>
         <Button
           onClick={() => openModal(null, "add")}
           variant="primary"
@@ -59,147 +150,33 @@ const OrdersPage = observer(() => {
         >
           <FiPlus className="w-4 h-4" />
         </Button>
-      }
-    >
-      {sortedOrders.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-10 text-gray-500 dark:text-gray-400"
-        >
+      </div>
+
+      {sortedOrders.length === 0 ? (
+        <p className="text-center py-10 text-gray-500 dark:text-gray-400">
           Brak zleceń — kliknij{" "}
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
-        </motion.div>
+        </p>
+      ) : (
+        <ExpandableTable
+          data={sortedOrders}
+          columns={columns}
+          keyField="id"
+          renderExpanded={renderExpanded}
+          renderActions={renderActions}
+          expandedId={expandedOrderId}
+        />
       )}
-
-      <AnimatePresence>
-        {sortedOrders.map((order, index) => {
-          const totalPrice = order.services.reduce(
-            (sum, s) => sum + s.price,
-            0
-          );
-
-          return (
-            <motion.div
-              key={order.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <Card title={order.client.name} status={order.status}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700 dark:text-gray-300 min-w-0">
-                  <span className="font-bold">Data zlecenia:</span>
-                  <span>{new Date(order.createdAt).toLocaleDateString()}</span>
-
-                  <span className="font-bold">Łączna cena:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    {totalPrice} zł
-                  </span>
-
-                  <span className="font-bold">Usługi:</span>
-                  <span className="truncate">
-                    {order.services.map((s) => s.name).join(", ")}
-                  </span>
-                </div>
-
-                {/* Status dropdown */}
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <label className="text-sm font-bold mr-2">Status:</label>
-                  <select
-                    value={order.status}
-                    onChange={(e) =>
-                      handleStatusChange(order, e.target.value as OrderStatus)
-                    }
-                    className="text-sm w-auto max-w-[150px] border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Buttons */}
-                <ButtonGroup align="right">
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    onClick={() => openModal(order, "edit")}
-                    title="Edytuj zlecenie"
-                  >
-                    <FiEdit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    onClick={() => openModal(order, "delete")}
-                    title="Usuń zlecenie"
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => toggleExpand(order.id)}
-                    title={
-                      expandedOrderId === order.id
-                        ? "Ukryj szczegóły"
-                        : "Pokaż szczegóły"
-                    }
-                  >
-                    {expandedOrderId === order.id ? (
-                      <>
-                        <FiEyeOff className="w-4 h-4" />
-                      </>
-                    ) : (
-                      <>
-                        <FiEye className="w-4 h-4" />
-                      </>
-                    )}
-                  </Button>
-                </ButtonGroup>
-                <AnimatePresence>
-                  {expandedOrderId === order.id && (
-                    <motion.div
-                      initial={{ scaleY: 0, opacity: 0 }}
-                      animate={{ scaleY: 1, opacity: 1 }}
-                      exit={{ scaleY: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      style={{ originY: 0 }}
-                      className="mt-2 border-t pt-2 text-sm text-gray-700 dark:text-gray-300 overflow-hidden"
-                    >
-                      <p>
-                        {order.notes
-                          ? `Notatki: ${order.notes}`
-                          : "Brak notatek"}
-                      </p>
-                      <ul className="list-disc list-inside mt-1">
-                        {order.services.map((s) => (
-                          <li key={s.id}>
-                            {s.name} — {s.price} zł
-                          </li>
-                        ))}
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
 
       {modalMode && (
         <OrderModal
           isOpen={!!modalMode}
           mode={modalMode as "add" | "edit" | "delete"}
           order={modalOrder}
-          onClose={closeModal}
+          onClose={() => setModalMode("")}
         />
       )}
-    </PageSection>
+    </div>
   );
 });
 

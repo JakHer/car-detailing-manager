@@ -104,13 +104,13 @@ export default function ExpandableTable<T>({
             >
               <Card title={title as string} className="w-full ">
                 {columns.slice(1).map((col, idx) => (
-                  <div key={idx} className="flex justify-between mb-1">
-                    <span className="font-semibold text-gray-700 dark:text-gray-200">
+                  <div key={idx} className="flex justify-between mb-1 min-w-0">
+                    <span className="font-semibold text-gray-700 dark:text-gray-200 truncate">
                       {col.header}:
                     </span>
                     <div className="max-w-[65%] overflow-x-auto">
                       <span
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap truncate block"
                         title={
                           typeof col.render(item) === "string"
                             ? (col.render(item) as string)
