@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, reaction } from "mobx";
 import type { Client } from "./ClientsStore";
 
 export type OrderStatus =
@@ -26,32 +26,50 @@ export interface Order {
 }
 
 export class OrdersStore {
-  orders: Order[] = [
-    {
-      id: 1,
-      client: { id: 1, name: "Jan Kowalski", phone: "" },
-      services: [{ id: 1, name: "Mycie zewnętrzne", price: 100 }],
-      status: "Przyjęte",
-      createdAt: new Date("2025-10-15T10:00:00Z").toISOString(),
-      updatedAt: new Date("2025-10-15T10:00:00Z").toISOString(),
-      notes: "",
-    },
-    {
-      id: 2,
-      client: { id: 2, name: "Anna Nowak", phone: "" },
-      services: [
-        { id: 3, name: "Detailing wnętrza", price: 250 },
-        { id: 4, name: "Woskowanie", price: 150 },
-      ],
-      status: "Zakończone",
-      createdAt: new Date("2025-10-16T14:30:00Z").toISOString(),
-      updatedAt: new Date("2025-10-16T14:30:00Z").toISOString(),
-      notes: "",
-    },
-  ];
+  orders: Order[] = [];
 
   constructor() {
     makeAutoObservable(this);
+
+    const stored = localStorage.getItem("orders");
+    if (stored) {
+      try {
+        this.orders = JSON.parse(stored);
+      } catch {
+        this.orders = [];
+      }
+    } else {
+      this.orders = [
+        {
+          id: 1,
+          client: { id: 1, name: "Jan Kowalski", phone: "" },
+          services: [{ id: 1, name: "Mycie zewnętrzne", price: 100 }],
+          status: "Przyjęte",
+          createdAt: new Date("2025-10-15T10:00:00Z").toISOString(),
+          updatedAt: new Date("2025-10-15T10:00:00Z").toISOString(),
+          notes: "",
+        },
+        {
+          id: 2,
+          client: { id: 2, name: "Anna Nowak", phone: "" },
+          services: [
+            { id: 3, name: "Detailing wnętrza", price: 250 },
+            { id: 4, name: "Woskowanie", price: 150 },
+          ],
+          status: "Zakończone",
+          createdAt: new Date("2025-10-16T14:30:00Z").toISOString(),
+          updatedAt: new Date("2025-10-16T14:30:00Z").toISOString(),
+          notes: "",
+        },
+      ];
+    }
+
+    reaction(
+      () => this.orders.map((o) => ({ ...o })), // track shallow changes
+      (orders) => {
+        localStorage.setItem("orders", JSON.stringify(orders));
+      }
+    );
   }
 
   addOrder(order: Omit<Order, "id" | "createdAt" | "updatedAt">) {

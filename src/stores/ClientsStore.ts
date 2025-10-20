@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, reaction } from "mobx";
 
 export interface Client {
   id: number;
@@ -9,24 +9,42 @@ export interface Client {
 }
 
 export class ClientsStore {
-  clients: Client[] = [
-    {
-      id: 1,
-      name: "Jan Kowalski",
-      phone: "123-456-789",
-      email: "jan@example.com",
-      notes: "VIP klient",
-    },
-    {
-      id: 2,
-      name: "Anna Nowak",
-      phone: "987-654-321",
-      email: "anna@example.com",
-    },
-  ];
+  clients: Client[] = [];
 
   constructor() {
     makeAutoObservable(this);
+
+    const stored = localStorage.getItem("clients");
+    if (stored) {
+      try {
+        this.clients = JSON.parse(stored);
+      } catch {
+        this.clients = [];
+      }
+    } else {
+      this.clients = [
+        {
+          id: 1,
+          name: "Jan Kowalski",
+          phone: "123-456-789",
+          email: "jan@example.com",
+          notes: "VIP klient",
+        },
+        {
+          id: 2,
+          name: "Anna Nowak",
+          phone: "987-654-321",
+          email: "anna@example.com",
+        },
+      ];
+    }
+
+    reaction(
+      () => this.clients.map((c) => ({ ...c })),
+      (clients) => {
+        localStorage.setItem("clients", JSON.stringify(clients));
+      }
+    );
   }
 
   addClient(client: Omit<Client, "id">) {

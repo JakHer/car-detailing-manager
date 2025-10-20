@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, reaction } from "mobx";
 
 export interface Service {
   id: number;
@@ -7,14 +7,32 @@ export interface Service {
 }
 
 export class ServicesStore {
-  services: Service[] = [
-    { id: 1, name: "Mycie zewnętrzne", price: 100 },
-    { id: 2, name: "Woskowanie", price: 200 },
-    { id: 3, name: "Detailing wnętrza", price: 250 },
-  ];
+  services: Service[] = [];
 
   constructor() {
     makeAutoObservable(this);
+
+    const stored = localStorage.getItem("services");
+    if (stored) {
+      try {
+        this.services = JSON.parse(stored);
+      } catch {
+        this.services = [];
+      }
+    } else {
+      this.services = [
+        { id: 1, name: "Mycie zewnętrzne", price: 100 },
+        { id: 2, name: "Woskowanie", price: 200 },
+        { id: 3, name: "Detailing wnętrza", price: 250 },
+      ];
+    }
+
+    reaction(
+      () => this.services.map((s) => ({ ...s })),
+      (services) => {
+        localStorage.setItem("services", JSON.stringify(services));
+      }
+    );
   }
 
   addService(service: Omit<Service, "id">) {
