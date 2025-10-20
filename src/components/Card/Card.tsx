@@ -8,6 +8,7 @@ export interface CardProps {
   onAction?: () => void;
   children?: React.ReactNode;
   className?: string;
+  compact?: boolean; // for smaller padding/text
 }
 
 export const STATUS_COLORS: Record<
@@ -33,33 +34,47 @@ export default function Card({
   onAction,
   children,
   className = "",
+  compact = false,
 }: CardProps) {
   return (
     <div
-      className={`border rounded-xl p-5 shadow-sm bg-white dark:bg-gray-800 w-full transition-colors duration-300 ${className}`}
+      className={`border rounded-xl shadow-sm bg-white dark:bg-gray-800 w-full transition-colors duration-300
+        ${compact ? "p-3" : "p-5"} ${className}`}
     >
-      {/* Header */}
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[70%]">
+      <div className="flex justify-between items-start mb-2 w-full">
+        <h3
+          className={`w-full ${
+            compact ? "text-sm font-semibold" : "text-lg font-semibold"
+          } text-gray-900 dark:text-gray-100`}
+        >
           {title}
         </h3>
 
         {status && (
           <span
-            className={`flex-shrink-0 px-2 py-1 text-sm font-semibold rounded ${STATUS_COLORS[status].bg} ${STATUS_COLORS[status].text}`}
+            className={`flex-shrink-0 ml-2 px-2 py-0.5 ${
+              compact ? "text-xs" : "text-sm"
+            } font-semibold rounded 
+              ${STATUS_COLORS[status].bg} ${STATUS_COLORS[status].text}`}
           >
             {status}
           </span>
         )}
       </div>
 
-      <div className="text-gray-800 dark:text-gray-100 space-y-1 overflow-hidden ">
+      <div
+        className={`text-gray-800 dark:text-gray-100 space-y-1 ${
+          compact ? "text-sm" : "text-base"
+        } overflow-hidden w-full`}
+      >
         {children}
       </div>
 
       {actionLabel && onAction && (
         <button
-          className="mt-3 px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className={`mt-2 ${
+            compact ? "px-2 py-0.5 text-xs" : "px-3 py-1 text-sm"
+          } bg-gray-200 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors w-full`}
           onClick={onAction}
         >
           {actionLabel}

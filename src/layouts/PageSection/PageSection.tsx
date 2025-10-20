@@ -32,7 +32,7 @@ export default function PageSection({
         </div>
       )}
 
-      <div className={`grid ${gridCols} gap-6`}>{children}</div>
+      <div className={`grid ${gridCols} gap-4`}>{children}</div>
     </section>
   );
 }

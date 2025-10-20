@@ -1,14 +1,14 @@
 import { observer } from "mobx-react-lite";
 import { useState } from "react";
 import { clientsStore, type Client } from "../../stores/ClientsStore";
-import { ordersStore } from "../../stores/OrdersStore";
-import Card from "../../components/Card/Card";
-import Button from "../../components/Button/Button";
-import { motion, AnimatePresence } from "framer-motion";
-import PageSection from "../../layouts/PageSection/PageSection";
+import { ordersStore, type OrderStatus } from "../../stores/OrdersStore";
 import ClientModal from "./ClientModal";
-import { FiEdit, FiEye, FiEyeOff, FiTrash2, FiUserPlus } from "react-icons/fi";
+import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
+import { FiEdit, FiEye, FiEyeOff, FiTrash2, FiUserPlus } from "react-icons/fi";
+import ExpandableTable from "../../components/ExpandableTable/ExpandableTable";
+import { motion } from "framer-motion";
+import { STATUS_COLORS } from "../../components/Card/Card";
 
 const ClientsPage = observer(() => {
   const [modalClient, setModalClient] = useState<Client | null>(null);
@@ -16,9 +16,6 @@ const ClientsPage = observer(() => {
     ""
   );
   const [expandedClientId, setExpandedClientId] = useState<number | null>(null);
-
-  const toggleExpand = (id: number) =>
-    setExpandedClientId(expandedClientId === id ? null : id);
 
   const openModal = (
     client: Client | null,
@@ -28,157 +25,207 @@ const ClientsPage = observer(() => {
     setModalMode(mode);
   };
 
+  const columns = [
+    { header: "Imię", render: (c: Client) => c.name },
+    { header: "Telefon", render: (c: Client) => c.phone },
+    { header: "Email", render: (c: Client) => c.email },
+    {
+      header: "Ostatnie zamówienie",
+      render: (c: Client) => {
+        const orders = ordersStore.orders.filter((o) => o.client.id === c.id);
+        return orders.length
+          ? new Date(orders[orders.length - 1].createdAt).toLocaleDateString()
+          : "Brak";
+      },
+    },
+    {
+      header: "Przychód",
+      render: (c: Client) => {
+        const orders = ordersStore.orders.filter(
+          (o) => o.client.id === c.id && o.status === "Zakończone"
+        );
+        const total = orders.reduce(
+          (sum, o) => sum + o.services.reduce((s, srv) => s + srv.price, 0),
+          0
+        );
+        return (
+          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+            {total > 0 ? `${total} zł` : "-"}
+          </span>
+        );
+      },
+    },
+  ];
+
+  const renderExpanded = (client: Client) => {
+    const clientOrders = ordersStore.orders.filter(
+      (o) => o.client.id === client.id
+    );
+
+    const totalRevenue = clientOrders.reduce(
+      (sum, order) =>
+        sum + order.services.reduce((sSum, s) => sSum + s.price, 0),
+      0
+    );
+
+    return (
+      <motion.div
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ height: "auto", opacity: 1 }}
+        exit={{ height: 0, opacity: 0 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+        className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2"
+      >
+        <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
+          <span>Data</span>
+          <span>Usługi</span>
+          <span>Suma</span>
+          <span>Status</span>
+          <span>Notatki</span>
+        </div>
+
+        <div className="space-y-1">
+          {clientOrders.map((order, idx) => (
+            <div
+              key={order.id}
+              className={`grid grid-cols-5 gap-4 p-2 ${
+                idx % 2 === 0
+                  ? "bg-gray-50 dark:bg-gray-700"
+                  : "bg-gray-100 dark:bg-gray-600"
+              } text-gray-700 dark:text-gray-200`}
+            >
+              <span className="whitespace-nowrap">
+                {new Date(order.createdAt).toLocaleDateString()}
+              </span>
+
+              <div className="flex flex-col gap-1 max-h-32 overflow-y-auto min-h-0">
+                {order.services.map((s, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="flex justify-between text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap overflow-hidden truncate"
+                  >
+                    <span className="whitespace-nowrap overflow-hidden truncate">
+                      {s.name}
+                    </span>
+                    <span>{s.price} zł</span>
+                  </div>
+                ))}
+              </div>
+
+              <span className="font-medium whitespace-nowrap">
+                {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
+              </span>
+
+              <div className="flex items-start">
+                <span
+                  className={`inline-block px-2 py-0.5 text-sm font-semibold rounded whitespace-nowrap ${
+                    STATUS_COLORS[order.status as OrderStatus]?.bg
+                  } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                >
+                  {order.status}
+                </span>
+              </div>
+
+              <span
+                className="italic text-gray-500 dark:text-gray-400 whitespace-nowrap overflow-hidden truncate"
+                title={order.notes || "-"}
+              >
+                {order.notes || "-"}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-gray-100 border-t border-gray-400 dark:border-gray-600">
+          <span>Razem:</span>
+          <span></span>
+          <span>{totalRevenue} zł</span>
+          <span></span>
+          <span></span>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderActions = (client: Client) => {
+    const clientOrders = ordersStore.orders.filter(
+      (o) => o.client.id === client.id
+    );
+    return (
+      <ButtonGroup align="right">
+        <Button
+          size="icon"
+          variant="secondary"
+          title="Edytuj klienta"
+          onClick={() => openModal(client, "edit")}
+        >
+          <FiEdit className="w-4 h-4" />
+        </Button>
+
+        {clientOrders.length > 0 && (
+          <Button
+            size="icon"
+            variant="outline"
+            title={
+              expandedClientId === client.id
+                ? "Ukryj zamówienia"
+                : "Pokaż zamówienia"
+            }
+            onClick={() =>
+              setExpandedClientId(
+                expandedClientId === client.id ? null : client.id
+              )
+            }
+          >
+            {expandedClientId === client.id ? (
+              <FiEyeOff className="w-4 h-4" />
+            ) : (
+              <FiEye className="w-4 h-4" />
+            )}
+          </Button>
+        )}
+
+        <Button
+          size="icon"
+          variant="destructive"
+          title="Usuń klienta"
+          onClick={() => openModal(client, "delete")}
+        >
+          <FiTrash2 className="w-4 h-4" />
+        </Button>
+      </ButtonGroup>
+    );
+  };
+
   return (
-    <PageSection
-      title="Klienci"
-      action={
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Klienci</h1>
         <Button
           onClick={() => openModal(null, "add")}
           variant="primary"
-          className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base"
+          className="flex items-center gap-2"
         >
-          <FiUserPlus className="w-4 h-4" />
+          <FiUserPlus />
         </Button>
-      }
-    >
-      {clientsStore.clients.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-10 text-gray-500 dark:text-gray-400"
-        >
+      </div>
+
+      {clientsStore.clients.length === 0 ? (
+        <p className="text-center py-10 text-gray-500 dark:text-gray-400">
           Brak klientów — kliknij{" "}
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
-        </motion.div>
+        </p>
+      ) : (
+        <ExpandableTable
+          data={clientsStore.clients}
+          columns={columns}
+          keyField="id"
+          renderExpanded={renderExpanded}
+          renderActions={renderActions}
+          expandedId={expandedClientId}
+          setExpandedId={(id) => setExpandedClientId(id as number | null)}
+        />
       )}
-
-      <AnimatePresence>
-        {clientsStore.clients.map((client, index) => {
-          const clientOrders = ordersStore.orders.filter(
-            (o) => o.client.id === client.id
-          );
-
-          const lastOrderDate = clientOrders.length
-            ? new Date(
-                clientOrders[clientOrders.length - 1].createdAt
-              ).toLocaleDateString()
-            : "Brak zamówień";
-
-          const totalRevenue = clientOrders.reduce(
-            (sum, o) => sum + o.services.reduce((sSum, s) => sSum + s.price, 0),
-            0
-          );
-
-          return (
-            <motion.div
-              key={client.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <Card
-                title={client.name}
-                className="hover:shadow-lg transition-transform duration-200"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700 dark:text-gray-300 min-w-0">
-                  <span className="font-bold">Telefon:</span>
-                  <span className="truncate">{client.phone}</span>
-
-                  <span className="font-bold">Email:</span>
-                  <span className="truncate">{client.email}</span>
-
-                  <span className="font-bold">Ostatnie zamówienie:</span>
-                  <span className="truncate">{lastOrderDate}</span>
-
-                  <span className="font-bold">Suma przychodów:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 truncate">
-                    {totalRevenue} zł
-                  </span>
-                </div>
-                {client.notes && (
-                  <p className="mt-2 text-sm italic text-gray-500 dark:text-gray-400 break-words">
-                    „{client.notes}”
-                  </p>
-                )}
-
-                <ButtonGroup align="right">
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    title="Edytuj klienta"
-                    onClick={() => openModal(client, "edit")}
-                  >
-                    <FiEdit className="w-4 h-4" />
-                  </Button>
-
-                  {clientOrders.length > 0 && (
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      title={
-                        expandedClientId === client.id
-                          ? "Ukryj zamówienia"
-                          : "Pokaż zamówienia"
-                      }
-                      onClick={() => toggleExpand(client.id)}
-                    >
-                      {expandedClientId === client.id ? (
-                        <FiEyeOff className="w-4 h-4" />
-                      ) : (
-                        <FiEye className="w-4 h-4" />
-                      )}
-                    </Button>
-                  )}
-
-                  <Button
-                    size="icon"
-                    variant="destructive"
-                    title="Usuń klienta"
-                    onClick={() => openModal(client, "delete")}
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                  </Button>
-                </ButtonGroup>
-
-                <AnimatePresence>
-                  {expandedClientId === client.id && (
-                    <motion.div
-                      initial={{ scaleY: 0, opacity: 0 }}
-                      animate={{ scaleY: 1, opacity: 1 }}
-                      exit={{ scaleY: 0, opacity: 0 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      style={{ originY: 0 }}
-                      className="mt-2 border-t pt-3 text-sm text-gray-700 dark:text-gray-300 overflow-hidden"
-                    >
-                      {clientOrders.map((o) => (
-                        <div
-                          key={o.id}
-                          className="mb-2 bg-gray-50 dark:bg-gray-700/40 p-2 rounded-lg"
-                        >
-                          <p className="font-medium text-gray-900 dark:text-gray-100">
-                            {new Date(o.createdAt).toLocaleDateString()}
-                          </p>
-                          <p>
-                            {o.services
-                              .map((s) => `${s.name} (${s.price} zł)`)
-                              .join(", ")}
-                          </p>
-                          {o.notes && (
-                            <p className="italic text-gray-500 dark:text-gray-400 mt-1">
-                              „{o.notes}”
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
 
       {modalMode && (
         <ClientModal
@@ -188,7 +235,7 @@ const ClientsPage = observer(() => {
           onClose={() => setModalMode("")}
         />
       )}
-    </PageSection>
+    </div>
   );
 });
 
