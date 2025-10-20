@@ -65,7 +65,7 @@ export class OrdersStore {
     }
 
     reaction(
-      () => this.orders.map((o) => ({ ...o })), // track shallow changes
+      () => this.orders.map((o) => ({ ...o })),
       (orders) => {
         localStorage.setItem("orders", JSON.stringify(orders));
       }

@@ -30,12 +30,33 @@ const Dashboard = observer(() => {
     .filter((entry) => entry.value > 0);
 
   const dailyOrdersData = () => {
-    const counts: Record<string, number> = {};
+    const emptyStatusCounts = Object.keys(STATUS_COLORS).reduce(
+      (acc, status) => ({ ...acc, [status]: 0 }),
+      {} as Record<OrderStatus, number>
+    );
+
+    if (ordersStore.orders.length === 0) return [];
+
+    const orderDates = ordersStore.orders.map((o) =>
+      new Date(o.createdAt).setHours(0, 0, 0, 0)
+    );
+    const minDate = Math.min(...orderDates);
+    const maxDate = Math.max(...orderDates);
+
+    const counts: Record<string, Record<OrderStatus, number>> = {};
+    for (let d = minDate; d <= maxDate; d += 24 * 60 * 60 * 1000) {
+      const dateStr = new Date(d).toLocaleDateString();
+      counts[dateStr] = { ...emptyStatusCounts };
+    }
+
     ordersStore.orders.forEach((order) => {
-      const date = new Date(order.createdAt).toLocaleDateString();
-      counts[date] = (counts[date] || 0) + 1;
+      const dateStr = new Date(order.createdAt).toLocaleDateString();
+      counts[dateStr][order.status]++;
     });
-    return Object.entries(counts).map(([date, count]) => ({ date, count }));
+
+    return Object.entries(counts)
+      .map(([date, statusCounts]) => ({ date, ...statusCounts }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   };
 
   const dailyRevenue = () => {
@@ -77,7 +98,7 @@ const Dashboard = observer(() => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {ordersStore.orders.length > 0 && (
-          <Card title="Zlecenia w czasie">
+          <Card title="Zlecenia w czasie (podział na statusy)">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dailyOrdersData()}>
                 <XAxis
@@ -94,15 +115,42 @@ const Dashboard = observer(() => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 border p-2 rounded shadow">
-                          <p>{`Data: ${label}`}</p>
-                          <p>{`Zleceń: ${payload[0].value}`}</p>
+                          <p className="font-semibold">Data: {label}</p>
+                          {Object.keys(STATUS_COLORS).map((status) => {
+                            const barData = payload.find(
+                              (p) => p.dataKey === status
+                            );
+                            if (barData && barData.value > 0) {
+                              return (
+                                <p key={status}>
+                                  <span
+                                    className="inline-block w-3 h-3 mr-1 rounded-full"
+                                    style={{
+                                      backgroundColor:
+                                        STATUS_COLORS[status as OrderStatus]
+                                          .hex,
+                                    }}
+                                  />
+                                  {status}: {barData.value}
+                                </p>
+                              );
+                            }
+                            return null;
+                          })}
                         </div>
                       );
                     }
                     return null;
                   }}
                 />
-                <Bar dataKey="count" fill="#0ea5e9" />
+                {Object.keys(STATUS_COLORS).map((status) => (
+                  <Bar
+                    key={status}
+                    dataKey={status}
+                    stackId="a"
+                    fill={STATUS_COLORS[status as OrderStatus].hex}
+                  />
+                ))}
               </BarChart>
             </ResponsiveContainer>
           </Card>

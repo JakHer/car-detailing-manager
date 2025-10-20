@@ -103,14 +103,6 @@ const OrdersPage = observer(() => {
     <ButtonGroup align="right">
       <Button
         size="icon"
-        variant="secondary"
-        onClick={() => openModal(order, "edit")}
-        title="Edytuj zlecenie"
-      >
-        <FiEdit className="w-4 h-4" />
-      </Button>
-      <Button
-        size="icon"
         variant="outline"
         onClick={() => toggleExpand(order.id)}
         title={
@@ -122,6 +114,14 @@ const OrdersPage = observer(() => {
         ) : (
           <FiEye className="w-4 h-4" />
         )}
+      </Button>
+      <Button
+        size="icon"
+        variant="secondary"
+        onClick={() => openModal(order, "edit")}
+        title="Edytuj zlecenie"
+      >
+        <FiEdit className="w-4 h-4" />
       </Button>
       <Button
         size="icon"

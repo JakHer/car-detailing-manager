@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { clientsStore } from "../../stores/ClientsStore";
 import { servicesStore } from "../../stores/ServicesStore";
 import {
@@ -7,6 +6,10 @@ import {
   type OrderStatus,
 } from "../../stores/OrdersStore";
 import BaseModal from "../../components/BaseModal/BaseModal";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import { FiAlertCircle } from "react-icons/fi";
+import clsx from "clsx";
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -24,48 +27,48 @@ const STATUS_OPTIONS: OrderStatus[] = [
   "Anulowane",
 ];
 
+const OrderSchema = Yup.object().shape({
+  clientId: Yup.number().required("Wybierz klienta"),
+  serviceIds: Yup.array()
+    .of(Yup.number())
+    .min(1, "Wybierz przynajmniej jedną usługę"),
+  status: Yup.string().required("Wybierz status"),
+  notes: Yup.string().optional(),
+});
+
 export default function OrderModal({
   isOpen,
   onClose,
   order,
   mode,
 }: OrderModalProps) {
-  const [clientId, setClientId] = useState<number | "">("");
-  const [serviceIds, setServiceIds] = useState<number[]>([]);
-  const [status, setStatus] = useState<OrderStatus>("Przyjęte");
-  const [notes, setNotes] = useState("");
+  const initialValues = {
+    clientId: order?.client.id || "",
+    serviceIds: order?.services.map((s) => s.id) || [],
+    status: order?.status || "Przyjęte",
+    notes: order?.notes || "",
+  };
 
-  useEffect(() => {
-    if (order && mode !== "add") {
-      setClientId(order.client.id);
-      setServiceIds(order.services.map((s) => s.id));
-      setStatus(order.status);
-      setNotes(order.notes || "");
-    } else {
-      setClientId("");
-      setServiceIds([]);
-      setStatus("Przyjęte");
-      setNotes("");
-    }
-  }, [order, mode, isOpen]);
-
-  const toggleService = (id: number) =>
-    setServiceIds((prev) =>
-      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
-    );
-
-  const handleSave = () => {
-    if (!clientId || serviceIds.length === 0) return;
-
-    const client = clientsStore.clients.find((c) => c.id === clientId)!;
+  const handleSubmit = (values: typeof initialValues) => {
+    const client = clientsStore.clients.find((c) => c.id === values.clientId)!;
     const services = servicesStore.services.filter((s) =>
-      serviceIds.includes(s.id)
+      values.serviceIds.includes(s.id)
     );
 
     if (order && mode === "edit") {
-      ordersStore.updateOrder(order.id, { client, services, status, notes });
+      ordersStore.updateOrder(order.id, {
+        client,
+        services,
+        status: values.status,
+        notes: values.notes,
+      });
     } else if (mode === "add") {
-      ordersStore.addOrder({ client, services, status, notes });
+      ordersStore.addOrder({
+        client,
+        services,
+        status: values.status,
+        notes: values.notes,
+      });
     }
 
     onClose();
@@ -85,74 +88,137 @@ export default function OrderModal({
       ? "Edytuj zlecenie"
       : "Usuń zlecenie";
 
-  const renderBody = () =>
-    mode === "delete" ? (
-      <p className="dark:text-gray-100">
-        Czy na pewno chcesz usunąć zlecenie{" "}
-        <span className="font-semibold">{order?.client.name}</span>?
-      </p>
-    ) : (
-      <div className="flex flex-col space-y-3">
-        <select
-          className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
-          value={clientId}
-          onChange={(e) => setClientId(Number(e.target.value))}
-        >
-          <option value="">Wybierz klienta</option>
-          {clientsStore.clients.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-
-        <div className="flex flex-col max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 px-3 py-2 rounded space-y-1">
-          {servicesStore.services.map((s) => (
-            <label
-              key={s.id}
-              className="flex items-center gap-2 cursor-pointer dark:text-gray-100 text-gray-900"
-            >
-              <input
-                type="checkbox"
-                checked={serviceIds.includes(s.id)}
-                onChange={() => toggleService(s.id)}
-                className="form-checkbox accent-cyan-500"
-              />
-              {s.name} ({s.price} zł)
-            </label>
-          ))}
-        </div>
-
-        <select
-          className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
-          value={status}
-          onChange={(e) => setStatus(e.target.value as OrderStatus)}
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-
-        <textarea
-          className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
-          placeholder="Notatki"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </div>
+  if (mode === "delete") {
+    return (
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={title}
+        mode="delete"
+        renderBody={() => (
+          <p className="dark:text-gray-100">
+            Czy na pewno chcesz usunąć zlecenie{" "}
+            <span className="font-semibold">{order?.client.name}</span>?
+          </p>
+        )}
+        onDelete={handleDelete}
+      />
     );
+  }
 
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={title}
-      mode={mode}
-      renderBody={renderBody}
-      onSave={handleSave}
-      onDelete={handleDelete}
-    />
+    <Formik
+      initialValues={initialValues}
+      validationSchema={OrderSchema}
+      onSubmit={handleSubmit}
+      enableReinitialize
+      validateOnChange={false}
+      validateOnBlur={true}
+    >
+      {({ values, errors, touched, setFieldValue, submitForm }) => (
+        <BaseModal
+          isOpen={isOpen}
+          onClose={onClose}
+          title={title}
+          mode={mode}
+          onSave={() => submitForm()}
+          renderBody={() => (
+            <Form className="flex flex-col space-y-3">
+              <div className="relative">
+                <Field
+                  as="select"
+                  name="clientId"
+                  className={clsx(
+                    "border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+                    errors.clientId && touched.clientId
+                      ? "border-red-500 animate-shake"
+                      : "border-gray-300 dark:border-gray-600"
+                  )}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    setFieldValue("clientId", Number(e.target.value))
+                  }
+                  value={values.clientId}
+                >
+                  <option value="">Wybierz klienta</option>
+                  {clientsStore.clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </Field>
+                {errors.clientId && touched.clientId && (
+                  <div className="absolute right-2 top-2.5 text-red-500">
+                    <FiAlertCircle size={18} title={errors.clientId} />
+                  </div>
+                )}
+                <ErrorMessage
+                  name="clientId"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+
+              <div className="flex flex-col max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 px-3 py-2 rounded space-y-1">
+                {servicesStore.services.map((s) => (
+                  <label
+                    key={s.id}
+                    className="flex items-center gap-2 cursor-pointer dark:text-gray-100 text-gray-900"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={values.serviceIds.includes(s.id)}
+                      onChange={() =>
+                        setFieldValue(
+                          "serviceIds",
+                          values.serviceIds.includes(s.id)
+                            ? values.serviceIds.filter((id) => id !== s.id)
+                            : [...values.serviceIds, s.id]
+                        )
+                      }
+                      className="form-checkbox accent-cyan-500"
+                    />
+                    {s.name} ({s.price} zł)
+                  </label>
+                ))}
+                {errors.serviceIds && touched.serviceIds && (
+                  <div className="text-red-500 text-sm mt-1">
+                    {errors.serviceIds as string}
+                  </div>
+                )}
+              </div>
+
+              <Field
+                as="select"
+                name="status"
+                className={clsx(
+                  "border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
+                  errors.status && touched.status
+                    ? "border-red-500 animate-shake"
+                    : "border-gray-300 dark:border-gray-600"
+                )}
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </Field>
+              <ErrorMessage
+                name="status"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+
+              <Field
+                as="textarea"
+                name="notes"
+                placeholder="Notatki"
+                className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
+              />
+            </Form>
+          )}
+        />
+      )}
+    </Formik>
   );
 }

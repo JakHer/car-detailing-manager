@@ -8,7 +8,7 @@ export interface CardProps {
   onAction?: () => void;
   children?: React.ReactNode;
   className?: string;
-  compact?: boolean; // for smaller padding/text
+  compact?: boolean;
 }
 
 export const STATUS_COLORS: Record<

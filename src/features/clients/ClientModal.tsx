@@ -80,6 +80,8 @@ export default function ClientModal({
       validationSchema={ClientSchema}
       onSubmit={handleSubmit}
       enableReinitialize
+      validateOnChange={false}
+      validateOnBlur={true}
     >
       {({ errors, touched, submitForm }) => (
         <BaseModal

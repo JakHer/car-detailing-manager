@@ -165,15 +165,6 @@ const ClientsPage = observer(() => {
     );
     return (
       <ButtonGroup align="right">
-        <Button
-          size="icon"
-          variant="secondary"
-          title="Edytuj klienta"
-          onClick={() => openModal(client, "edit")}
-        >
-          <FiEdit className="w-4 h-4" />
-        </Button>
-
         {clientOrders.length > 0 && (
           <Button
             size="icon"
@@ -196,6 +187,14 @@ const ClientsPage = observer(() => {
             )}
           </Button>
         )}
+        <Button
+          size="icon"
+          variant="secondary"
+          title="Edytuj klienta"
+          onClick={() => openModal(client, "edit")}
+        >
+          <FiEdit className="w-4 h-4" />
+        </Button>
 
         <Button
           size="icon"
