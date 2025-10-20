@@ -29,7 +29,7 @@ export default function BaseModal({
       >
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 z-50 overflow-visible relative">
-          <h2 className="text-xl font-bold mb-4">{title}</h2>
+          <h2 className="text-xl font-bold mb-4 dark:text-gray-100">{title}</h2>
 
           <div className="overflow-visible max-h-[70vh]">{renderBody()}</div>
 
@@ -43,11 +43,18 @@ export default function BaseModal({
                 Usuń
               </Button>
             ) : (
-              onSave && (
-                <Button variant="primary" onClick={onSave}>
-                  {mode === "edit" ? "Zapisz" : "Dodaj"}
-                </Button>
-              )
+              <Button
+                variant="primary"
+                onClick={onSave}
+                disabled={!onSave}
+                className={`${
+                  !onSave
+                    ? "bg-gray-400 hover:bg-gray-400 cursor-not-allowed"
+                    : ""
+                }`}
+              >
+                {mode === "edit" ? "Zapisz" : "Dodaj"}
+              </Button>
             )}
           </div>
         </div>
