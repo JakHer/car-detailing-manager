@@ -13,6 +13,7 @@ import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
 import { FiEdit, FiTrash2, FiEye, FiEyeOff, FiPlus } from "react-icons/fi";
 import { STATUS_COLORS } from "../../components/Card/Card";
+import { motion } from "framer-motion";
 
 const STATUS_OPTIONS: OrderStatus[] = [
   "Nowe",
@@ -110,14 +111,6 @@ const OrdersPage = observer(() => {
       </Button>
       <Button
         size="icon"
-        variant="destructive"
-        onClick={() => openModal(order, "delete")}
-        title="Usuń zlecenie"
-      >
-        <FiTrash2 className="w-4 h-4" />
-      </Button>
-      <Button
-        size="icon"
         variant="outline"
         onClick={() => toggleExpand(order.id)}
         title={
@@ -129,6 +122,14 @@ const OrdersPage = observer(() => {
         ) : (
           <FiEye className="w-4 h-4" />
         )}
+      </Button>
+      <Button
+        size="icon"
+        variant="destructive"
+        onClick={() => openModal(order, "delete")}
+        title="Usuń zlecenie"
+      >
+        <FiTrash2 className="w-4 h-4" />
       </Button>
     </ButtonGroup>
   );
@@ -158,14 +159,22 @@ const OrdersPage = observer(() => {
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
         </p>
       ) : (
-        <ExpandableTable
-          data={sortedOrders}
-          columns={columns}
-          keyField="id"
-          renderExpanded={renderExpanded}
-          renderActions={renderActions}
-          expandedId={expandedOrderId}
-        />
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2"
+        >
+          <ExpandableTable
+            data={sortedOrders}
+            columns={columns}
+            keyField="id"
+            renderExpanded={renderExpanded}
+            renderActions={renderActions}
+            expandedId={expandedOrderId}
+          />
+        </motion.div>
       )}
 
       {modalMode && (

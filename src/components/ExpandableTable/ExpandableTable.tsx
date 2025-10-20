@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 import Card from "../Card/Card";
+import ButtonGroup from "../ButtonGroup/ButtonGroup";
 
 export interface ExpandableTableColumn<T> {
   header: string;
@@ -26,6 +27,7 @@ export default function ExpandableTable<T>({
 }: ExpandableTableProps<T>) {
   return (
     <div>
+      {/* Desktop Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full table-auto border-collapse border border-gray-200 dark:border-gray-700">
           <thead>
@@ -36,7 +38,7 @@ export default function ExpandableTable<T>({
                 </th>
               ))}
               {(renderExpanded || renderActions) && (
-                <th className="px-3 py-2 border-b">Akcje</th>
+                <th className="px-3 py-2 min-w-40 border-b">Akcje</th>
               )}
             </tr>
           </thead>
@@ -61,7 +63,11 @@ export default function ExpandableTable<T>({
                     ))}
                     {(renderExpanded || renderActions) && (
                       <td className="px-3 py-2">
-                        {renderActions && renderActions(item)}
+                        {renderActions && (
+                          <div className="flex flex-row gap-2 justify-end flex-wrap">
+                            {renderActions(item)}
+                          </div>
+                        )}
                       </td>
                     )}
                   </tr>
@@ -90,6 +96,7 @@ export default function ExpandableTable<T>({
         </table>
       </div>
 
+      {/* Mobile Card View */}
       <div className="block md:hidden space-y-2">
         {data.map((item) => {
           const id = item[keyField];
@@ -102,7 +109,7 @@ export default function ExpandableTable<T>({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              <Card title={title as string} className="w-full ">
+              <Card title={title as string} className="w-full">
                 {columns.slice(1).map((col, idx) => (
                   <div key={idx} className="flex justify-between mb-1 min-w-0">
                     <span className="font-semibold text-gray-700 dark:text-gray-200 truncate">
@@ -124,7 +131,11 @@ export default function ExpandableTable<T>({
                 ))}
 
                 {renderActions && (
-                  <div className="mt-2">{renderActions(item)}</div>
+                  <div className="mt-2 overflow-x-auto">
+                    <ButtonGroup align="right" className="flex-nowrap">
+                      {renderActions(item)}
+                    </ButtonGroup>
+                  </div>
                 )}
 
                 {renderExpanded && expandedId === id && (
