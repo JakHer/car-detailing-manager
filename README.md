@@ -45,7 +45,7 @@ npm install
 yarn
 ```
 
-## Start the development server
+## ⚡ Start the development server
 
 ```bash
 npm run dev
@@ -56,7 +56,7 @@ yarn dev
 Open your browser and go to <http://localhost:5173>
 to see the app.
 
-## ⚡ Build for Production
+## 📦 Build for Production
 
 ```bash
 npm run build
