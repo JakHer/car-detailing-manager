@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { clientsStore, type Client } from "../../stores/ClientsStore";
+import { clientsStore } from "../../stores/ClientsStore";
 import { servicesStore } from "../../stores/ServicesStore";
 import {
   ordersStore,
