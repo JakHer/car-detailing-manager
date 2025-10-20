@@ -46,7 +46,7 @@ const Dashboard = observer(() => {
 
   const generateWeekDates = (start: Date, end: Date) => {
     const dates: string[] = [];
-    let current = new Date(start);
+    const current = new Date(start);
     while (current <= end) {
       dates.push(current.toLocaleDateString());
       current.setDate(current.getDate() + 1);

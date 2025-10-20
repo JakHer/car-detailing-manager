@@ -1,6 +1,6 @@
 import { makeAutoObservable, reaction } from "mobx";
 import type { Client } from "./ClientsStore";
-import { MOCK_ORDERS, MOCK_SERVICES } from "../mocks/mocks";
+import { MOCK_ORDERS } from "../mocks/mocks";
 
 export type OrderStatus =
   | "Nowe"
