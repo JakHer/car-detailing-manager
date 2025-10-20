@@ -3,17 +3,16 @@ import { AnimatePresence, motion } from "framer-motion";
 
 export interface ExpandableTableColumn<T> {
   header: string;
-  render: (item: T) => React.ReactNode;
+  render: (_item: T) => React.ReactNode;
 }
 
 export interface ExpandableTableProps<T> {
   data: T[];
   columns: ExpandableTableColumn<T>[];
-  renderExpanded?: (item: T) => React.ReactNode;
-  renderActions?: (item: T) => React.ReactNode;
+  renderExpanded?: (_item: T) => React.ReactNode;
+  renderActions?: (_item: T) => React.ReactNode;
   keyField: keyof T;
   expandedId?: T[keyof T] | null;
-  setExpandedId?: (id: T[keyof T] | null) => void;
 }
 
 export default function ExpandableTable<T>({
@@ -23,13 +22,7 @@ export default function ExpandableTable<T>({
   renderActions,
   keyField,
   expandedId,
-  setExpandedId,
 }: ExpandableTableProps<T>) {
-  const toggleExpand = (id: T[keyof T]) => {
-    if (!setExpandedId) return;
-    setExpandedId(expandedId === id ? null : id);
-  };
-
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full table-auto border-collapse border border-gray-200 dark:border-gray-700">

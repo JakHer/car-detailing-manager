@@ -55,6 +55,17 @@ const ClientsPage = observer(() => {
         );
       },
     },
+    {
+      header: "Notatki",
+      render: (client: Client) => (
+        <span
+          className="italic text-gray-500 dark:text-gray-400 max-w-[150px] truncate block"
+          title={client.notes || "-"}
+        >
+          {client.notes || "-"}
+        </span>
+      ),
+    },
   ];
 
   const renderExpanded = (client: Client) => {
@@ -216,15 +227,22 @@ const ClientsPage = observer(() => {
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
         </p>
       ) : (
-        <ExpandableTable
-          data={clientsStore.clients}
-          columns={columns}
-          keyField="id"
-          renderExpanded={renderExpanded}
-          renderActions={renderActions}
-          expandedId={expandedClientId}
-          setExpandedId={(id) => setExpandedClientId(id as number | null)}
-        />
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2"
+        >
+          <ExpandableTable
+            data={clientsStore.clients}
+            columns={columns}
+            keyField="id"
+            renderExpanded={renderExpanded}
+            renderActions={renderActions}
+            expandedId={expandedClientId}
+          />
+        </motion.div>
       )}
 
       {modalMode && (

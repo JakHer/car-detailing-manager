@@ -160,8 +160,6 @@ const OrdersPage = observer(() => {
                     )}
                   </Button>
                 </ButtonGroup>
-
-                {/* Expandable details */}
                 <AnimatePresence>
                   {expandedOrderId === order.id && (
                     <motion.div

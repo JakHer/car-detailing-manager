@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import Button from "../components/Button/Button";
 import { HiSun, HiMoon } from "react-icons/hi";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function MainLayout({
   children,

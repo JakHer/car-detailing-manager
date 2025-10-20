@@ -21,7 +21,14 @@ export default defineConfig([
     ],
     rules: {
       "react-refresh/only-export-components": "off",
-      "no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
       "no-console": "off",
     },
   },
