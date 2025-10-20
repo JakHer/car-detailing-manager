@@ -135,6 +135,23 @@ export default function MainLayout({
               onClick={toggleDarkMode}
               className="flex items-center gap-2"
             >
+              <motion.span
+                key={darkMode ? "sun" : "moon"}
+                initial={{ rotate: -90, opacity: 0, scale: 0 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 90, opacity: 0, scale: 0 }}
+                transition={{ duration: 0.3 }}
+                whileHover={{
+                  scale: 1.2,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                }}
+              >
+                {darkMode ? (
+                  <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200 group-hover:text-yellow-300" />
+                ) : (
+                  <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200 group-hover:text-gray-200" />
+                )}
+              </motion.span>
               <p className="text-gray-100">
                 {darkMode ? "Light Mode" : "Dark Mode"}
               </p>
