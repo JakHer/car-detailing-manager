@@ -65,7 +65,7 @@ const Dashboard = observer(() => {
     });
 
     ordersStore.orders.forEach((order) => {
-      const dateStr = new Date(order.createdAt).toLocaleDateString();
+      const dateStr = new Date(order.createdAt).toLocaleDateString("pl-PL");
       if (counts[dateStr]) {
         counts[dateStr][order.status]++;
       }
@@ -121,8 +121,8 @@ const Dashboard = observer(() => {
                 <XAxis
                   dataKey="date"
                   tickFormatter={(date: string) => {
-                    const parts = date.split(".");
-                    return `${parts[0]}/${parts[1]}`;
+                    const [day, month] = date.split(".").filter(Boolean);
+                    return `${day}/${month}`;
                   }}
                 />
                 <YAxis />
@@ -130,6 +130,13 @@ const Dashboard = observer(() => {
                   cursor={{ fill: "transparent" }}
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
+                      const total = payload.reduce(
+                        (sum, p) => sum + (p.value || 0),
+                        0
+                      );
+
+                      if (total === 0) return null;
+
                       return (
                         <div className="bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 border p-2 rounded shadow">
                           <p className="font-semibold">Data: {label}</p>
