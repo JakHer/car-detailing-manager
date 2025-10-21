@@ -29,6 +29,8 @@ const Dashboard = observer(() => {
     }))
     .filter((entry) => entry.value > 0);
 
+  const formatDate = (date: Date) => date.toLocaleDateString("pl-PL");
+
   const getWeekRange = () => {
     const today = new Date();
     const day = today.getDay();
@@ -48,7 +50,7 @@ const Dashboard = observer(() => {
     const dates: string[] = [];
     const current = new Date(start);
     while (current <= end) {
-      dates.push(current.toLocaleDateString());
+      dates.push(formatDate(current));
       current.setDate(current.getDate() + 1);
     }
     return dates;
@@ -65,7 +67,7 @@ const Dashboard = observer(() => {
     });
 
     ordersStore.orders.forEach((order) => {
-      const dateStr = new Date(order.createdAt).toLocaleDateString("pl-PL");
+      const dateStr = formatDate(new Date(order.createdAt));
       if (counts[dateStr]) {
         counts[dateStr][order.status]++;
       }
@@ -81,7 +83,7 @@ const Dashboard = observer(() => {
     ordersStore.orders
       .filter((o) => o.status === "Zakończone")
       .forEach((order) => {
-        const date = new Date(order.createdAt).toLocaleDateString();
+        const date = formatDate(new Date(order.createdAt));
         const totalPrice = order.services.reduce((sum, s) => sum + s.price, 0);
         revenuePerDay[date] = (revenuePerDay[date] || 0) + totalPrice;
       });
@@ -91,7 +93,12 @@ const Dashboard = observer(() => {
     }));
   };
 
-  const today = new Date().toLocaleDateString();
+  const formatXAxisDate = (dateStr: string) => {
+    const [day, month] = dateStr.split(".").filter(Boolean);
+    return `${day.padStart(2, "0")}/${month.padStart(2, "0")}`;
+  };
+
+  const today = formatDate(new Date());
   const todayRevenue =
     dailyRevenue().find((r) => r.date === today)?.revenue || 0;
 
@@ -118,13 +125,7 @@ const Dashboard = observer(() => {
           <Card title="Zlecenia w tym tygodniu (podział na statusy)">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={dailyOrdersData()}>
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(date: string) => {
-                    const [day, month] = date.split(".").filter(Boolean);
-                    return `${day}/${month}`;
-                  }}
-                />
+                <XAxis dataKey="date" tickFormatter={formatXAxisDate} />
                 <YAxis />
                 <Tooltip
                   cursor={{ fill: "transparent" }}
