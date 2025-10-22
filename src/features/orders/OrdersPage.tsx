@@ -89,7 +89,7 @@ const OrdersPage = observer(() => {
 
   const renderExpanded = (order: Order) => {
     return (
-      <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-sm">
+      <div className="space-y-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
           <span className="font-semibold text-gray-700 dark:text-gray-200">
             Status:
