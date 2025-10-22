@@ -3,6 +3,8 @@ import { NavLink } from "react-router-dom";
 import Button from "../components/Button/Button";
 import { HiSun, HiMoon } from "react-icons/hi";
 import { motion } from "framer-motion";
+import { authStore } from "../stores/AuthStore";
+import { FiLogOut } from "react-icons/fi";
 
 export default function MainLayout({
   children,
@@ -56,33 +58,46 @@ export default function MainLayout({
           ))}
         </nav>
 
-        <div className="mt-6">
-          <Button
-            variant="menu"
-            onClick={toggleDarkMode}
-            className="flex items-center gap-2"
-          >
-            <motion.span
-              key={darkMode ? "sun" : "moon"}
-              initial={{ rotate: -90, opacity: 0, scale: 0 }}
-              animate={{ rotate: 0, opacity: 1, scale: 1 }}
-              exit={{ rotate: 90, opacity: 0, scale: 0 }}
-              transition={{ duration: 0.3 }}
-              whileHover={{
-                scale: 1.2,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-              }}
+        <div className="space-y-2">
+          <div>
+            <Button
+              variant="menu"
+              onClick={toggleDarkMode}
+              className="flex items-center gap-2"
             >
-              {darkMode ? (
-                <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200 group-hover:text-yellow-300" />
-              ) : (
-                <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200 group-hover:text-gray-200" />
-              )}
-            </motion.span>
-            <p className="text-gray-100">
-              {darkMode ? "Light Mode" : "Dark Mode"}
-            </p>
-          </Button>
+              <motion.span
+                key={darkMode ? "sun" : "moon"}
+                initial={{ rotate: -90, opacity: 0, scale: 0 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={{ rotate: 90, opacity: 0, scale: 0 }}
+                transition={{ duration: 0.3 }}
+                whileHover={{
+                  scale: 1.2,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                }}
+              >
+                {darkMode ? (
+                  <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200 group-hover:text-yellow-300" />
+                ) : (
+                  <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200 group-hover:text-gray-200" />
+                )}
+              </motion.span>
+              <p className="text-gray-100">
+                {darkMode ? "Light Mode" : "Dark Mode"}
+              </p>
+            </Button>
+          </div>
+
+          <div>
+            <Button
+              variant="menu"
+              onClick={() => authStore.logout()}
+              className="flex items-start gap-2 text-gray-300"
+            >
+              <FiLogOut className="w-5 h-5" />
+              <p className="text-gray-100">Logout</p>
+            </Button>
+          </div>
         </div>
       </aside>
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 dark:bg-gray-800 text-gray-100 flex items-center justify-between p-2">
@@ -129,7 +144,7 @@ export default function MainLayout({
             </NavLink>
           ))}
 
-          <div className="mt-2">
+          <div>
             <Button
               variant="menu"
               onClick={toggleDarkMode}
@@ -155,6 +170,17 @@ export default function MainLayout({
               <p className="text-gray-100">
                 {darkMode ? "Light Mode" : "Dark Mode"}
               </p>
+            </Button>
+          </div>
+
+          <div>
+            <Button
+              variant="menu"
+              onClick={() => authStore.logout()}
+              className="flex items-start gap-2 text-gray-300"
+            >
+              <FiLogOut className="w-5 h-5" />
+              <p className="text-gray-100">Logout</p>
             </Button>
           </div>
         </div>
