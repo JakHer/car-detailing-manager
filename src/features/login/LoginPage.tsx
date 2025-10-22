@@ -38,14 +38,6 @@ const LoginPage = observer(() => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      {/* <Toaster
-        position="top-center"
-        toastOptions={{
-          className:
-            "!bg-gray-700 !text-white !px-4 !py-2 !rounded-lg !shadow-lg !font-medium !text-center",
-        }}
-      /> */}
-
       <Formik
         initialValues={initialValues}
         validationSchema={LoginSchema}

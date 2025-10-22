@@ -5,6 +5,7 @@ import { HiSun, HiMoon } from "react-icons/hi";
 import { motion } from "framer-motion";
 import { authStore } from "../stores/AuthStore";
 import { FiLogOut } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 export default function MainLayout({
   children,
@@ -91,7 +92,10 @@ export default function MainLayout({
           <div>
             <Button
               variant="menu"
-              onClick={() => authStore.logout()}
+              onClick={() => {
+                toast.success("Pomyślnie wylogowano");
+                authStore.logout();
+              }}
               className="flex items-start gap-2 text-gray-300"
             >
               <FiLogOut className="w-5 h-5" />
