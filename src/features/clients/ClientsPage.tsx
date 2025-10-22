@@ -130,7 +130,7 @@ const ClientsPage = observer(() => {
 
     return (
       <div className="overflow-x-auto border border-gray-200 dark:border-gray-400 rounded mt-2 truncate">
-        <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
+        <div className="grid grid-cols-4 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
           <span>Data</span>
           <span>Suma</span>
           <span>Status</span>
@@ -146,7 +146,7 @@ const ClientsPage = observer(() => {
             {clientOrders.map((order, idx) => (
               <div
                 key={order.id}
-                className={`grid grid-cols-5 gap-4 p-2 ${
+                className={`grid grid-cols-4 gap-4 p-2 ${
                   idx % 2 === 0
                     ? "bg-gray-50 dark:bg-gray-700"
                     : "bg-gray-100 dark:bg-gray-600"
@@ -162,13 +162,23 @@ const ClientsPage = observer(() => {
 
                 <div className="flex items-center overflow-hidden whitespace-nowrap text-ellipsis">
                   <span
-                    className={`inline-block w-3 h-3 rounded-full ml-5 ${
+                    className={`ml-5 inline-block w-3 h-3 rounded-full mr-2 sm:hidden ${
                       STATUS_COLORS[order.status as OrderStatus]?.bg
                     }`}
                     title={order.status}
                     aria-label={order.status}
                   />
+
+                  <span
+                    className={`hidden sm:inline-block px-2 py-0.5 text-sm font-semibold rounded ${
+                      STATUS_COLORS[order.status as OrderStatus]?.bg
+                    } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                    title={order.status}
+                  >
+                    {order.status}
+                  </span>
                 </div>
+
                 <span
                   className="italic text-gray-500 dark:text-gray-400 truncate block"
                   title={order.notes || "-"}
