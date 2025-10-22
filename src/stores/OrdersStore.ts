@@ -1,4 +1,4 @@
-import { makeAutoObservable, reaction } from "mobx";
+import { makeAutoObservable, observable, reaction } from "mobx";
 import type { Client } from "./ClientsStore";
 import { MOCK_ORDERS } from "../mocks/mocks";
 
@@ -27,20 +27,23 @@ export interface Order {
 }
 
 export class OrdersStore {
-  orders: Order[] = [];
+  // Make orders a deeply observable array
+  orders = observable.array<Order>([]);
 
   constructor() {
-    makeAutoObservable(this);
+    // Deeply observe everything, auto-bind methods
+    makeAutoObservable(this, {}, { autoBind: true, deep: true });
 
     const stored = localStorage.getItem("orders");
     if (stored) {
       try {
-        this.orders = JSON.parse(stored);
+        // Replace to trigger observability properly
+        this.orders.replace(JSON.parse(stored));
       } catch {
-        this.orders = [];
+        this.orders.clear();
       }
     } else {
-      this.orders = MOCK_ORDERS;
+      this.orders.replace(MOCK_ORDERS);
     }
 
     reaction(
@@ -49,6 +52,15 @@ export class OrdersStore {
         localStorage.setItem("orders", JSON.stringify(orders));
       }
     );
+  }
+
+  get sortedOrders() {
+    return this.orders
+      .slice()
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
   }
 
   addOrder(order: Omit<Order, "id" | "updatedAt"> & { createdAt: string }) {
@@ -106,7 +118,7 @@ export class OrdersStore {
   }
 
   deleteOrder(orderId: number) {
-    this.orders = this.orders.filter((o) => o.id !== orderId);
+    this.orders.replace(this.orders.filter((o) => o.id !== orderId));
   }
 }
 

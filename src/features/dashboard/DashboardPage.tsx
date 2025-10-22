@@ -15,6 +15,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { motion } from "framer-motion";
 
 const Dashboard = observer(() => {
   const statusCounts = ordersStore.orders.reduce((acc, order) => {
@@ -106,107 +107,117 @@ const Dashboard = observer(() => {
     <div className="space-y-6">
       <Title>Dashboard</Title>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card title="Klienci">{clientsStore.clients.length}</Card>
-        <Card title="Usługi">{servicesStore.services.length}</Card>
-        <Card title="Zlecenia">{ordersStore.orders.length}</Card>
-        <Card title="Zakończone zlecenia">
-          <p className="text-2xl font-bold">
-            {ordersStore.orders.filter((o) => o.status === "Zakończone").length}
-          </p>
-          <p className="text-sm text-gray-500">
-            Przychód dzisiaj: {todayRevenue} zł
-          </p>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {ordersStore.orders.length > 0 && (
-          <Card title="Zlecenia w tym tygodniu (podział na statusy)">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dailyOrdersData()}>
-                <XAxis dataKey="date" tickFormatter={formatXAxisDate} />
-                <YAxis />
-                <Tooltip
-                  cursor={{ fill: "transparent" }}
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const total = payload.reduce(
-                        (sum, p) => sum + (p.value || 0),
-                        0
-                      );
-
-                      if (total === 0) return null;
-
-                      return (
-                        <div className="bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 border p-2 rounded shadow">
-                          <p className="font-semibold">Data: {label}</p>
-                          {Object.keys(STATUS_COLORS).map((status) => {
-                            const barData = payload.find(
-                              (p) => p.dataKey === status
-                            );
-                            if (barData && barData.value > 0) {
-                              return (
-                                <p key={status}>
-                                  <span
-                                    className="inline-block w-3 h-3 mr-1 rounded-full"
-                                    style={{
-                                      backgroundColor:
-                                        STATUS_COLORS[status as OrderStatus]
-                                          .hex,
-                                    }}
-                                  />
-                                  {status}: {barData.value}
-                                </p>
-                              );
-                            }
-                            return null;
-                          })}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                {Object.keys(STATUS_COLORS).map((status) => (
-                  <Bar
-                    key={status}
-                    dataKey={status}
-                    stackId="a"
-                    fill={STATUS_COLORS[status as OrderStatus].hex}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+      <motion.div
+        className="grid gap-6"
+        initial={{ opacity: 0.1 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card title="Klienci">{clientsStore.clients.length}</Card>
+          <Card title="Usługi">{servicesStore.services.length}</Card>
+          <Card title="Zlecenia">{ordersStore.orders.length}</Card>
+          <Card title="Zakończone zlecenia">
+            <p className="text-2xl font-bold">
+              {
+                ordersStore.orders.filter((o) => o.status === "Zakończone")
+                  .length
+              }
+            </p>
+            <p className="text-sm text-gray-500">
+              Przychód dzisiaj: {todayRevenue} zł
+            </p>
           </Card>
-        )}
+        </div>
 
-        {ordersStore.orders.length > 0 && (
-          <Card title="Status zleceń">
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  label
-                >
-                  {pieData.map((entry) => (
-                    <Cell
-                      key={entry.name}
-                      fill={STATUS_COLORS[entry.name as OrderStatus].hex}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {ordersStore.orders.length > 0 && (
+            <Card title="Zlecenia w tym tygodniu (podział na statusy)">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dailyOrdersData()}>
+                  <XAxis dataKey="date" tickFormatter={formatXAxisDate} />
+                  <YAxis />
+                  <Tooltip
+                    cursor={{ fill: "transparent" }}
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        const total = payload.reduce(
+                          (sum, p) => sum + (p.value || 0),
+                          0
+                        );
+
+                        if (total === 0) return null;
+
+                        return (
+                          <div className="bg-gray-50 dark:bg-gray-800 dark:text-gray-100 text-gray-900 border p-2 rounded shadow">
+                            <p className="font-semibold">Data: {label}</p>
+                            {Object.keys(STATUS_COLORS).map((status) => {
+                              const barData = payload.find(
+                                (p) => p.dataKey === status
+                              );
+                              if (barData && barData.value > 0) {
+                                return (
+                                  <p key={status}>
+                                    <span
+                                      className="inline-block w-3 h-3 mr-1 rounded-full"
+                                      style={{
+                                        backgroundColor:
+                                          STATUS_COLORS[status as OrderStatus]
+                                            .hex,
+                                      }}
+                                    />
+                                    {status}: {barData.value}
+                                  </p>
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  {Object.keys(STATUS_COLORS).map((status) => (
+                    <Bar
+                      key={status}
+                      dataKey={status}
+                      stackId="a"
+                      fill={STATUS_COLORS[status as OrderStatus].hex}
                     />
                   ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        )}
-      </div>
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+
+          {ordersStore.orders.length > 0 && (
+            <Card title="Status zleceń">
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={3}
+                    label
+                  >
+                    {pieData.map((entry) => (
+                      <Cell
+                        key={entry.name}
+                        fill={STATUS_COLORS[entry.name as OrderStatus].hex}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </Card>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 });

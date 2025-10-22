@@ -1,13 +1,14 @@
 import { observer } from "mobx-react-lite";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { clientsStore, type Client } from "../../stores/ClientsStore";
 import { ordersStore, type OrderStatus } from "../../stores/OrdersStore";
 import ClientModal from "./ClientModal";
 import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
 import { FiEdit, FiEye, FiEyeOff, FiTrash2, FiUserPlus } from "react-icons/fi";
-import ExpandableTable from "../../components/ExpandableTable/ExpandableTable";
-import { motion } from "framer-motion";
+import ExpandableTable, {
+  type ExpandableTableColumn,
+} from "../../components/ExpandableTable/ExpandableTable";
 import { STATUS_COLORS } from "../../components/Card/Card";
 
 const ClientsPage = observer(() => {
@@ -25,48 +26,96 @@ const ClientsPage = observer(() => {
     setModalMode(mode);
   };
 
-  const columns = [
-    { header: "Imię", render: (c: Client) => c.name },
-    { header: "Telefon", render: (c: Client) => c.phone || "-" },
-    { header: "Email", render: (c: Client) => c.email || "-" },
-    {
-      header: "Ostatnie zamówienie",
-      render: (c: Client) => {
-        const orders = ordersStore.orders.filter((o) => o.client.id === c.id);
-        return orders.length
-          ? new Date(orders[orders.length - 1].createdAt).toLocaleDateString()
-          : "-";
+  const columns: ExpandableTableColumn<Client>[] = useMemo(
+    () => [
+      {
+        header: "Imię",
+        accessor: (c) => c.name,
+        render: (c) => <span className="font-medium">{c.name}</span>,
+        enableSorting: true,
       },
-    },
-    {
-      header: "Przychód",
-      render: (c: Client) => {
-        const orders = ordersStore.orders.filter(
-          (o) => o.client.id === c.id && o.status === "Zakończone"
-        );
-        const total = orders.reduce(
-          (sum, o) => sum + o.services.reduce((s, srv) => s + srv.price, 0),
-          0
-        );
-        return (
-          <span className="font-medium text-emerald-600 dark:text-emerald-400">
-            {total > 0 ? `${total} zł` : "-"}
+      {
+        header: "Telefon",
+        accessor: (c) => c.phone || "",
+        render: (c) => c.phone || "-",
+        enableSorting: true,
+      },
+      {
+        header: "Email",
+        accessor: (c) => c.email || "",
+        render: (c) => (
+          <span className="truncate max-w-[180px] block">{c.email || "-"}</span>
+        ),
+        enableSorting: true,
+      },
+      {
+        header: "Ostatnie zamówienie",
+        accessor: (c) => {
+          const orders = ordersStore.orders
+            .filter((o) => o.client.id === c.id)
+            .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
+          return orders.length
+            ? new Date(orders[orders.length - 1].createdAt).getTime()
+            : 0;
+        },
+        render: (c) => {
+          const orders = ordersStore.orders
+            .filter((o) => o.client.id === c.id)
+            .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
+          return orders.length
+            ? new Date(orders[orders.length - 1].createdAt).toLocaleDateString()
+            : "-";
+        },
+        enableSorting: true,
+      },
+      {
+        header: "Przychód",
+        accessor: (c) => {
+          const orders = ordersStore.orders.filter(
+            (o) => o.client.id === c.id && o.status === "Zakończone"
+          );
+          return orders.reduce(
+            (sum, o) => sum + o.services.reduce((s, srv) => s + srv.price, 0),
+            0
+          );
+        },
+        render: (c) => {
+          const orders = ordersStore.orders.filter(
+            (o) => o.client.id === c.id && o.status === "Zakończone"
+          );
+          const total = orders.reduce(
+            (sum, o) => sum + o.services.reduce((s, srv) => s + srv.price, 0),
+            0
+          );
+          return (
+            <span
+              className={`font-medium ${
+                total > 0
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-gray-400"
+              }`}
+            >
+              {total > 0 ? `${total.toFixed(2)} zł` : "-"}
+            </span>
+          );
+        },
+        enableSorting: true,
+      },
+      {
+        header: "Notatki",
+        accessor: (c) => c.notes || "",
+        render: (c) => (
+          <span
+            className="italic text-gray-500 dark:text-gray-400 max-w-[180px] truncate block"
+            title={c.notes || "-"}
+          >
+            {c.notes || "-"}
           </span>
-        );
+        ),
       },
-    },
-    {
-      header: "Notatki",
-      render: (client: Client) => (
-        <span
-          className="italic text-gray-500 dark:text-gray-400 max-w-[150px] truncate block"
-          title={client.notes || "-"}
-        >
-          {client.notes || "-"}
-        </span>
-      ),
-    },
-  ];
+    ],
+    []
+  );
 
   const renderExpanded = (client: Client) => {
     const clientOrders = ordersStore.orders.filter(
@@ -80,13 +129,7 @@ const ClientsPage = observer(() => {
     );
 
     return (
-      <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: "auto", opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-        className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2"
-      >
+      <div className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2">
         <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
           <span>Data</span>
           <span>Usługi</span>
@@ -95,67 +138,71 @@ const ClientsPage = observer(() => {
           <span>Notatki</span>
         </div>
 
-        <div className="space-y-1">
-          {clientOrders.map((order, idx) => (
-            <div
-              key={order.id}
-              className={`grid grid-cols-5 gap-4 p-2 ${
-                idx % 2 === 0
-                  ? "bg-gray-50 dark:bg-gray-700"
-                  : "bg-gray-100 dark:bg-gray-600"
-              } text-gray-700 dark:text-gray-200 overflow-x-auto whitespace-nowrap block`}
-            >
-              <span className="truncate whitespace-nowrap text-sm">
-                {new Date(order.createdAt).toLocaleDateString()}
-              </span>
+        {clientOrders.length === 0 ? (
+          <div className="p-3 text-gray-500 dark:text-gray-400 text-center">
+            Brak zamówień
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {clientOrders.map((order, idx) => (
+              <div
+                key={order.id}
+                className={`grid grid-cols-5 gap-4 p-2 ${
+                  idx % 2 === 0
+                    ? "bg-gray-50 dark:bg-gray-700"
+                    : "bg-gray-100 dark:bg-gray-600"
+                } text-gray-700 dark:text-gray-200 overflow-x-auto whitespace-nowrap block`}
+              >
+                <span className="truncate text-sm">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </span>
 
-              <div className="flex flex-col gap-1 max-h-32 overflow-y-auto min-h-0">
-                {order.services.map((s, sIdx) => (
-                  <div
-                    key={sIdx}
-                    className="flex justify-between text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap overflow-hidden truncate"
+                <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
+                  {order.services.map((s, sIdx) => (
+                    <div
+                      key={sIdx}
+                      className="flex justify-between text-sm text-gray-800 dark:text-gray-200"
+                    >
+                      <span className="truncate">{s.name}</span>
+                      <span>{s.price} zł</span>
+                    </div>
+                  ))}
+                </div>
+
+                <span className="font-medium whitespace-nowrap truncate">
+                  {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
+                </span>
+
+                <div className="flex items-start">
+                  <span
+                    className={`inline-block px-2 py-0.5 text-sm font-semibold rounded ${
+                      STATUS_COLORS[order.status as OrderStatus]?.bg
+                    } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                    title={order.status}
                   >
-                    <span className="whitespace-nowrap overflow-hidden truncate">
-                      {s.name}
-                    </span>
-                    <span>{s.price} zł</span>
-                  </div>
-                ))}
-              </div>
+                    {order.status}
+                  </span>
+                </div>
 
-              <span className="font-medium whitespace-nowrap truncate">
-                {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
-              </span>
-
-              <div className="flex items-start max-w-[150px]">
                 <span
-                  className={`inline-block px-2 py-0.5 text-sm font-semibold rounded whitespace-nowrap overflow-hidden truncate max-w-[150px] ${
-                    STATUS_COLORS[order.status as OrderStatus]?.bg
-                  } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
-                  title={order.status}
+                  className="italic text-gray-500 dark:text-gray-400 truncate block"
+                  title={order.notes || "-"}
                 >
-                  {order.status}
+                  {order.notes || "-"}
                 </span>
               </div>
-
-              <span
-                className="italic text-gray-500 dark:text-gray-400 max-w-[150px] truncate block"
-                title={order.notes || "-"}
-              >
-                {order.notes || "-"}
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-gray-100 border-t border-gray-400 dark:border-gray-600">
           <span>Razem:</span>
           <span></span>
-          <span>{totalRevenue} zł</span>
+          <span>{totalRevenue.toFixed(2)} zł</span>
           <span></span>
           <span></span>
         </div>
-      </motion.div>
+      </div>
     );
   };
 
@@ -187,6 +234,7 @@ const ClientsPage = observer(() => {
             )}
           </Button>
         )}
+
         <Button
           size="icon"
           variant="secondary"
@@ -227,22 +275,14 @@ const ClientsPage = observer(() => {
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
         </p>
       ) : (
-        <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-          className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2"
-        >
-          <ExpandableTable
-            data={clientsStore.clients}
-            columns={columns}
-            keyField="id"
-            renderExpanded={renderExpanded}
-            renderActions={renderActions}
-            expandedId={expandedClientId}
-          />
-        </motion.div>
+        <ExpandableTable
+          data={[...clientsStore.sortedClients]}
+          columns={columns}
+          keyField="id"
+          renderExpanded={renderExpanded}
+          renderActions={renderActions}
+          expandedId={expandedClientId}
+        />
       )}
 
       {modalMode && (

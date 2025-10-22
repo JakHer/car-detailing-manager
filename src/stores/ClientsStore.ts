@@ -1,5 +1,6 @@
 import { makeAutoObservable, reaction } from "mobx";
 import { MOCK_CLIENTS } from "../mocks/mocks";
+import { ordersStore } from "./OrdersStore";
 
 export interface Client {
   id: number;
@@ -33,7 +34,21 @@ export class ClientsStore {
       }
     );
   }
+  get sortedClients() {
+    return this.clients.slice().sort((a, b) => {
+      const aLast = ordersStore.orders
+        .filter((o) => o.client.id === a.id)
+        .sort((x, y) => +new Date(y.createdAt) - +new Date(x.createdAt))[0];
+      const bLast = ordersStore.orders
+        .filter((o) => o.client.id === b.id)
+        .sort((x, y) => +new Date(y.createdAt) - +new Date(x.createdAt))[0];
 
+      const aTime = aLast ? new Date(aLast.createdAt).getTime() : 0;
+      const bTime = bLast ? new Date(bLast.createdAt).getTime() : 0;
+
+      return bTime - aTime;
+    });
+  }
   addClient(client: Omit<Client, "id">) {
     const newId =
       this.clients.length > 0
