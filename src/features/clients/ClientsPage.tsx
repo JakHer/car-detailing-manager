@@ -160,17 +160,15 @@ const ClientsPage = observer(() => {
                   {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
                 </span>
 
-                <div className="flex items-start overflow-hidden whitespace-nowrap text-ellipsis">
+                <div className="flex items-center overflow-hidden whitespace-nowrap text-ellipsis">
                   <span
-                    className={`inline-block px-2 py-0.5 text-sm font-semibold rounded ${
+                    className={`inline-block w-3 h-3 rounded-full ml-5 ${
                       STATUS_COLORS[order.status as OrderStatus]?.bg
-                    } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                    }`}
                     title={order.status}
-                  >
-                    {order.status}
-                  </span>
+                    aria-label={order.status}
+                  />
                 </div>
-
                 <span
                   className="italic text-gray-500 dark:text-gray-400 truncate block"
                   title={order.notes || "-"}
