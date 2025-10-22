@@ -129,10 +129,9 @@ const ClientsPage = observer(() => {
     );
 
     return (
-      <div className="overflow-x-auto border border-gray-200 dark:border-gray-600 rounded mt-2">
+      <div className="overflow-x-auto border border-gray-200 dark:border-gray-400 rounded mt-2 truncate">
         <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
           <span>Data</span>
-          <span>Usługi</span>
           <span>Suma</span>
           <span>Status</span>
           <span>Notatki</span>
@@ -157,23 +156,11 @@ const ClientsPage = observer(() => {
                   {new Date(order.createdAt).toLocaleDateString()}
                 </span>
 
-                <div className="flex flex-col gap-1 max-h-32 overflow-y-auto">
-                  {order.services.map((s, sIdx) => (
-                    <div
-                      key={sIdx}
-                      className="flex justify-between text-sm text-gray-800 dark:text-gray-200"
-                    >
-                      <span className="truncate">{s.name}</span>
-                      <span>{s.price} zł</span>
-                    </div>
-                  ))}
-                </div>
-
                 <span className="font-medium whitespace-nowrap truncate">
                   {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
                 </span>
 
-                <div className="flex items-start">
+                <div className="flex items-start overflow-hidden whitespace-nowrap text-ellipsis">
                   <span
                     className={`inline-block px-2 py-0.5 text-sm font-semibold rounded ${
                       STATUS_COLORS[order.status as OrderStatus]?.bg

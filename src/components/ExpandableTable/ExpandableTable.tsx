@@ -217,7 +217,7 @@ const ExpandableTable = observer(
                               animate="show"
                               exit="exit"
                               transition={{ duration: 0.3 }}
-                              className="overflow-hidden p-2 bg-gray-50 dark:bg-gray-700"
+                              className="overflow-hidden p-2 bg-gray-50 dark:bg-gray-600"
                             >
                               {renderExpanded(item)}
                             </motion.div>
