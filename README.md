@@ -11,6 +11,15 @@ Built with **React**, **TypeScript**, **MobX**, **TailwindCSS**, and **Framer Mo
 
 Try the app online: [Car Detailing Manager](https://car-detailing-manager.netlify.app/)
 
+## 🔐 Demo Credentials
+
+You can try the app using the following demo account:
+
+**Email:** <test@test.com>  
+**Password:** <test@test.com>
+
+> Note: These credentials are for demo purposes only and reset periodically.
+
 ---
 
 ## 🚀 Features
