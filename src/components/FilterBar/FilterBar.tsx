@@ -131,7 +131,7 @@ const FilterPopover = ({
       {open && (
         <div
           ref={popoverRef}
-          className="absolute left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-lg p-4 z-50 w-auto min-w-[220px] max-w-[90vw] sm:max-w-sm md:max-w-md lg:max-w-lg"
+          className="absolute left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-lg p-4 z-50 w-auto min-w-[220px] md:max-w-md lg:max-w-lg"
         >
           <input
             name="text filter"
