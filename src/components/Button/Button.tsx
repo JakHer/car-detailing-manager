@@ -26,19 +26,21 @@ export default function Button({
   const variantClasses =
     variant === "primary"
       ? `bg-gray-800 hover:bg-gray-700 text-gray-100 
-         dark:bg-gray-700 dark:hover:bg-gray-600`
+       dark:bg-gray-700 dark:hover:bg-gray-600`
       : variant === "secondary"
       ? `bg-gray-200 hover:bg-gray-300 text-gray-800 
-         dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-600`
+       dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-600`
       : variant === "menu"
       ? `bg-transparent text-gray-100 hover:text-cyan-500 
-          dark:hover:text-cyan-400`
+       dark:hover:text-cyan-400`
       : variant === "destructive"
       ? `bg-red-600 hover:bg-red-700 text-gray-100 
-         dark:bg-red-500 dark:hover:bg-red-700`
+       dark:bg-red-500 dark:hover:bg-red-700`
       : variant === "outline"
       ? `border border-gray-300 hover:bg-gray-100 
-         dark:border-gray-600 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100`
+       dark:border-gray-600 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100
+       disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400 
+       dark:disabled:border-gray-600 dark:disabled:bg-gray-700 dark:disabled:text-gray-100`
       : "";
 
   return (

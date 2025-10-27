@@ -1,6 +1,7 @@
 import { makeAutoObservable, reaction } from "mobx";
 import { MOCK_CLIENTS } from "../mocks/mocks";
 import { ordersStore } from "./OrdersStore";
+import { parseLocalDate, parseLocalDateEnd } from "../utils/dateUtils";
 
 export interface Client {
   id: number;
@@ -12,6 +13,9 @@ export interface Client {
 
 export class ClientsStore {
   clients: Client[] = [];
+  searchTerm = "";
+  dateFrom = "";
+  dateTo = "";
 
   constructor() {
     makeAutoObservable(this);
@@ -49,6 +53,47 @@ export class ClientsStore {
       return bTime - aTime;
     });
   }
+
+  setFilters(
+    filters: Partial<{ searchTerm: string; dateFrom: string; dateTo: string }>
+  ) {
+    if (filters.searchTerm !== undefined) this.searchTerm = filters.searchTerm;
+    if (filters.dateFrom !== undefined) this.dateFrom = filters.dateFrom;
+    if (filters.dateTo !== undefined) this.dateTo = filters.dateTo;
+  }
+
+  resetFilters() {
+    this.searchTerm = "";
+    this.dateFrom = "";
+    this.dateTo = "";
+  }
+
+  get filteredClients() {
+    const from = parseLocalDate(this.dateFrom);
+    const to = parseLocalDateEnd(this.dateTo);
+
+    return this.sortedClients.filter((c) => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        c.phone?.includes(this.searchTerm) ||
+        c.email?.toLowerCase().includes(this.searchTerm.toLowerCase());
+
+      const clientOrders = ordersStore.orders
+        .filter((o) => o.client.id === c.id)
+        .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
+
+      const lastOrder = clientOrders.length
+        ? new Date(clientOrders[clientOrders.length - 1].createdAt)
+        : null;
+
+      const matchesDate =
+        (!from || (lastOrder && lastOrder >= from)) &&
+        (!to || (lastOrder && lastOrder <= to));
+
+      return matchesSearch && matchesDate;
+    });
+  }
+
   addClient(client: Omit<Client, "id">) {
     const newId =
       this.clients.length > 0
@@ -59,12 +104,7 @@ export class ClientsStore {
 
   updateClient(id: number, updated: Partial<Omit<Client, "id">>) {
     const client = this.clients.find((c) => c.id === id);
-    if (client) {
-      if (updated.name !== undefined) client.name = updated.name;
-      if (updated.phone !== undefined) client.phone = updated.phone;
-      if (updated.email !== undefined) client.email = updated.email;
-      if (updated.notes !== undefined) client.notes = updated.notes;
-    }
+    if (client) Object.assign(client, updated);
   }
 
   deleteClient(id: number) {

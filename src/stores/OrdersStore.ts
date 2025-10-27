@@ -1,6 +1,7 @@
 import { makeAutoObservable, observable, reaction } from "mobx";
 import type { Client } from "./ClientsStore";
 import { MOCK_ORDERS } from "../mocks/mocks";
+import { parseLocalDate, parseLocalDateEnd } from "../utils/dateUtils";
 
 export type OrderStatus =
   | "Nowe"
@@ -27,17 +28,18 @@ export interface Order {
 }
 
 export class OrdersStore {
-  // Make orders a deeply observable array
   orders = observable.array<Order>([]);
+  searchTerm = "";
+  statusFilter?: OrderStatus = undefined;
+  dateFrom = "";
+  dateTo = "";
 
   constructor() {
-    // Deeply observe everything, auto-bind methods
     makeAutoObservable(this, {}, { autoBind: true, deep: true });
 
     const stored = localStorage.getItem("orders");
     if (stored) {
       try {
-        // Replace to trigger observability properly
         this.orders.replace(JSON.parse(stored));
       } catch {
         this.orders.clear();
@@ -48,19 +50,49 @@ export class OrdersStore {
 
     reaction(
       () => this.orders.map((o) => ({ ...o })),
-      (orders) => {
-        localStorage.setItem("orders", JSON.stringify(orders));
-      }
+      (orders) => localStorage.setItem("orders", JSON.stringify(orders))
     );
   }
 
-  get sortedOrders() {
+  get filteredOrders() {
+    const from = parseLocalDate(this.dateFrom);
+    const to = parseLocalDateEnd(this.dateTo);
+
     return this.orders
+      .filter((o) => {
+        const matchSearch =
+          o.client.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+          o.client.phone?.includes(this.searchTerm);
+
+        const matchStatus =
+          !this.statusFilter || o.status === this.statusFilter;
+
+        const orderDate = new Date(o.createdAt);
+        const matchDate =
+          (!from || orderDate >= from) && (!to || orderDate <= to);
+
+        return matchSearch && matchStatus && matchDate;
+      })
       .slice()
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
+  }
+
+  setFilters(
+    filters: Partial<{
+      searchTerm: string;
+      statusFilter: OrderStatus | undefined;
+      dateFrom: string;
+      dateTo: string;
+    }>
+  ) {
+    if (filters.searchTerm !== undefined) this.searchTerm = filters.searchTerm;
+    if (filters.statusFilter !== undefined)
+      this.statusFilter = filters.statusFilter;
+    if (filters.dateFrom !== undefined) this.dateFrom = filters.dateFrom;
+    if (filters.dateTo !== undefined) this.dateTo = filters.dateTo;
   }
 
   addOrder(order: Omit<Order, "id" | "updatedAt"> & { createdAt: string }) {
@@ -69,22 +101,22 @@ export class OrdersStore {
         ? Math.max(...this.orders.map((o) => o.id)) + 1
         : 1;
 
-    const servicesSnapshot = order.services.map((s) => ({
-      id: s.id,
-      name: s.name,
-      price: s.price,
-    }));
-
     const now = new Date().toISOString();
-
     this.orders.push({
       ...order,
       id: newId,
       updatedAt: now,
-      services: servicesSnapshot,
+      services: order.services.map((s) => ({ ...s })),
       notes: order.notes || "",
       status: order.status || "Przyjęte",
     });
+  }
+
+  resetFilters() {
+    this.searchTerm = "";
+    this.statusFilter = undefined;
+    this.dateFrom = "";
+    this.dateTo = "";
   }
 
   setStatus(orderId: number, status: OrderStatus) {
@@ -103,13 +135,8 @@ export class OrdersStore {
     if (!order) return;
 
     if (updated.client) order.client = updated.client;
-    if (updated.services) {
-      order.services = updated.services.map((s) => ({
-        id: s.id,
-        name: s.name,
-        price: s.price,
-      }));
-    }
+    if (updated.services)
+      order.services = updated.services.map((s) => ({ ...s }));
     if (updated.status) order.status = updated.status;
     if (updated.notes !== undefined) order.notes = updated.notes;
     if (updated.createdAt) order.createdAt = updated.createdAt;

@@ -9,7 +9,9 @@ import { FiEdit, FiEye, FiEyeOff, FiTrash2, FiUserPlus } from "react-icons/fi";
 import ExpandableTable, {
   type ExpandableTableColumn,
 } from "../../components/ExpandableTable/ExpandableTable";
+import FilterBar from "../../components/FilterBar/FilterBar";
 import { STATUS_COLORS } from "../../components/Card/Card";
+import { parseLocalDate, parseLocalDateEnd } from "../../utils/dateUtils";
 
 const ClientsPage = observer(() => {
   const [modalClient, setModalClient] = useState<Client | null>(null);
@@ -25,6 +27,31 @@ const ClientsPage = observer(() => {
     setModalClient(client);
     setModalMode(mode);
   };
+
+  const filteredClients = useMemo(() => {
+    return clientsStore.sortedClients.filter((c) => {
+      const matchesSearch =
+        c.name.toLowerCase().includes(clientsStore.searchTerm.toLowerCase()) ||
+        c.phone?.includes(clientsStore.searchTerm) ||
+        c.email?.toLowerCase().includes(clientsStore.searchTerm.toLowerCase());
+
+      const clientOrders = ordersStore.orders
+        .filter((o) => o.client.id === c.id)
+        .sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt));
+
+      const lastOrder = clientOrders.length
+        ? new Date(clientOrders[clientOrders.length - 1].createdAt)
+        : null;
+
+      const from = parseLocalDate(clientsStore.dateFrom);
+      const to = parseLocalDateEnd(clientsStore.dateTo);
+      const matchesDate =
+        (!from || (lastOrder && lastOrder >= from)) &&
+        (!to || (lastOrder && lastOrder <= to));
+
+      return matchesSearch && matchesDate;
+    });
+  }, []);
 
   const columns: ExpandableTableColumn<Client>[] = useMemo(
     () => [
@@ -264,14 +291,24 @@ const ClientsPage = observer(() => {
         </Button>
       </div>
 
-      {clientsStore.clients.length === 0 ? (
+      <FilterBar
+        searchValue={clientsStore.searchTerm}
+        onSearchChange={(v) => clientsStore.setFilters({ searchTerm: v })}
+        dateFrom={clientsStore.dateFrom}
+        dateTo={clientsStore.dateTo}
+        onDateFromChange={(v) => clientsStore.setFilters({ dateFrom: v })}
+        onDateToChange={(v) => clientsStore.setFilters({ dateTo: v })}
+        onReset={() => clientsStore.resetFilters()}
+      />
+
+      {filteredClients.length === 0 ? (
         <p className="text-center py-10 text-gray-500 dark:text-gray-400">
           Brak klientów — kliknij{" "}
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
         </p>
       ) : (
         <ExpandableTable
-          data={[...clientsStore.sortedClients]}
+          data={clientsStore.filteredClients}
           columns={columns}
           keyField="id"
           renderExpanded={renderExpanded}

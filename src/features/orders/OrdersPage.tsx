@@ -11,6 +11,7 @@ import ExpandableTable, {
 import OrderModal from "./OrderModal";
 import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
+import FilterBar from "../../components/FilterBar/FilterBar";
 import { FiEdit, FiTrash2, FiEye, FiEyeOff, FiPlus } from "react-icons/fi";
 import { STATUS_COLORS } from "../../components/Card/Card";
 
@@ -35,8 +36,10 @@ const OrdersPage = observer(() => {
     setModalMode(mode);
   };
 
-  const handleStatusChange = (order: Order, newStatus: OrderStatus) => {
-    ordersStore.updateOrder(order.id, { status: newStatus });
+  const handleStatusChange = (order: Order, newStatus: string) => {
+    if (STATUS_OPTIONS.includes(newStatus as OrderStatus)) {
+      ordersStore.updateOrder(order.id, { status: newStatus as OrderStatus });
+    }
   };
 
   const toggleExpand = (id: number) =>
@@ -87,57 +90,51 @@ const OrdersPage = observer(() => {
     },
   ];
 
-  const renderExpanded = (order: Order) => {
-    return (
-      <div className="space-y-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm overflow-x-auto border border-gray-200 dark:border-gray-400">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-          <span className="font-semibold text-gray-700 dark:text-gray-200">
-            Status:
-          </span>
-          <select
-            value={order.status}
-            onChange={(e) =>
-              handleStatusChange(order, e.target.value as OrderStatus)
-            }
-            className="mt-1 sm:mt-0 text-sm w-full sm:w-auto max-w-[180px] border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors"
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <span className="font-semibold text-gray-700 dark:text-gray-200">
-            Notatki:
-          </span>
-          <p className="mt-1 text-gray-600 dark:text-gray-300">
-            {order.notes || "Brak notatek"}
-          </p>
-        </div>
-
-        <div>
-          <span className="font-semibold text-gray-700 dark:text-gray-200">
-            Usługi:
-          </span>
-          <table className="mt-2 text-gray-600 dark:text-gray-300 table-auto w-max">
-            <tbody>
-              {order.services.map((s) => (
-                <tr key={s.id} className="align-top">
-                  <td className="pr-4 break-words max-w-[200px]">{s.name}</td>
-                  <td className="font-medium text-right whitespace-nowrap">
-                    {s.price} zł
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+  const renderExpanded = (order: Order) => (
+    <div className="space-y-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm overflow-x-auto border border-gray-200 dark:border-gray-400">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+        <span className="font-semibold text-gray-700 dark:text-gray-200">
+          Status:
+        </span>
+        <select
+          value={order.status}
+          onChange={(e) => handleStatusChange(order, e.target.value)}
+          className="mt-1 sm:mt-0 text-sm w-full sm:w-auto max-w-[180px] border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors"
+        >
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
       </div>
-    );
-  };
+      <div>
+        <span className="font-semibold text-gray-700 dark:text-gray-200">
+          Notatki:
+        </span>
+        <p className="mt-1 text-gray-600 dark:text-gray-300">
+          {order.notes || "Brak notatek"}
+        </p>
+      </div>
+      <div>
+        <span className="font-semibold text-gray-700 dark:text-gray-200">
+          Usługi:
+        </span>
+        <table className="mt-2 text-gray-600 dark:text-gray-300 table-auto w-max">
+          <tbody>
+            {order.services.map((s) => (
+              <tr key={s.id} className="align-top">
+                <td className="pr-4 break-words max-w-[200px]">{s.name}</td>
+                <td className="font-medium text-right whitespace-nowrap">
+                  {s.price} zł
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
   const renderActions = (order: Order) => (
     <ButtonGroup align="right">
@@ -183,14 +180,33 @@ const OrdersPage = observer(() => {
         </Button>
       </div>
 
-      {ordersStore.orders.length === 0 ? (
+      <FilterBar
+        searchValue={ordersStore.searchTerm}
+        onSearchChange={(v) => ordersStore.setFilters({ searchTerm: v })}
+        statusOptions={STATUS_OPTIONS}
+        statusValue={ordersStore.statusFilter}
+        onStatusChange={(v) =>
+          ordersStore.setFilters({
+            statusFilter: STATUS_OPTIONS.includes(v as OrderStatus)
+              ? (v as OrderStatus)
+              : undefined,
+          })
+        }
+        dateFrom={ordersStore.dateFrom}
+        dateTo={ordersStore.dateTo}
+        onDateFromChange={(v) => ordersStore.setFilters({ dateFrom: v })}
+        onDateToChange={(v) => ordersStore.setFilters({ dateTo: v })}
+        onReset={() => ordersStore.resetFilters()}
+      />
+
+      {ordersStore.filteredOrders.length === 0 ? (
         <p className="text-center py-10 text-gray-500 dark:text-gray-400">
           Brak zleceń — kliknij{" "}
           <span className="text-cyan-500 font-medium">+</span> aby rozpocząć.
         </p>
       ) : (
         <ExpandableTable
-          data={[...ordersStore.sortedOrders]}
+          data={ordersStore.filteredOrders}
           columns={columns}
           keyField="id"
           renderExpanded={renderExpanded}
