@@ -166,7 +166,7 @@ const FilterPopover = ({
 
           {(onDateFromChange || onDateToChange) && (
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-              <div className="relative w-full">
+              <div className="flex-1 min-w-0 relative">
                 <label
                   htmlFor="from-date-filter"
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
@@ -178,13 +178,15 @@ const FilterPopover = ({
                   type="date"
                   value={localDateFrom}
                   onChange={(e) => setLocalDateFrom(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 w-full pl-10"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 pl-10"
                 />
               </div>
+
               <span className="text-gray-500 dark:text-gray-300 text-center hidden sm:inline">
                 –
               </span>
-              <div className="relative w-full">
+
+              <div className="flex-1 min-w-0 relative">
                 <label
                   htmlFor="to-date-filter"
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
@@ -196,7 +198,7 @@ const FilterPopover = ({
                   type="date"
                   value={localDateTo}
                   onChange={(e) => setLocalDateTo(e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 w-full pl-10"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 pl-10"
                 />
               </div>
             </div>
