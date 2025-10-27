@@ -178,7 +178,8 @@ const FilterPopover = ({
                   type="date"
                   value={localDateFrom}
                   onChange={(e) => setLocalDateFrom(e.target.value)}
-                  className="w-full max-w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 pl-10"
+                  className="block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 pl-10 truncate"
+                  style={{ minWidth: 0 }}
                 />
               </div>
 
@@ -198,7 +199,8 @@ const FilterPopover = ({
                   type="date"
                   value={localDateTo}
                   onChange={(e) => setLocalDateTo(e.target.value)}
-                  className="w-full max-w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 pl-10"
+                  className="block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-700 focus:ring-2 focus:ring-cyan-400 pl-10 truncate"
+                  style={{ minWidth: 0 }}
                 />
               </div>
             </div>
