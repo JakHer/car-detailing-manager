@@ -20,7 +20,7 @@ export default function ButtonGroup({
 
   return (
     <div
-      className={`flex flex-wrap gap-2 mt-2 mr-2 mb-2 ${alignment} ${className}`}
+      className={`flex flex-nowrap gap-2 mt-2 mr-2 mb-2 overflow-x-auto ${alignment} ${className}`}
     >
       {children}
     </div>
