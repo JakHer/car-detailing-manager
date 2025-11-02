@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import Button from "../components/Button/Button";
-import { HiSun, HiMoon } from "react-icons/hi";
+import { HiSun, HiMoon, HiHome, HiUsers, HiClipboard } from "react-icons/hi";
+import { HiCog, HiWrench } from "react-icons/hi2";
 import { motion } from "framer-motion";
 import { authStore } from "../stores/AuthStore";
 import { FiLogOut } from "react-icons/fi";
@@ -33,11 +34,47 @@ export default function MainLayout({
   };
 
   const navItems = [
-    { path: "/", label: "Dashboard" },
-    { path: "/clients", label: "Klienci" },
-    { path: "/services", label: "Usługi" },
-    { path: "/orders", label: "Zlecenia" },
+    { path: "/", label: "Dashboard", icon: HiHome },
+    { path: "/clients", label: "Klienci", icon: HiUsers },
+    { path: "/services", label: "Usługi", icon: HiWrench },
+    { path: "/orders", label: "Zlecenia", icon: HiClipboard },
+    ...(authStore.profile?.role === "admin"
+      ? [{ path: "/admin", label: "Admin Panel", icon: HiCog }]
+      : []),
   ];
+
+  const NavItem = ({ item }: { item: (typeof navItems)[0] }) => (
+    <NavLink
+      to={item.path}
+      className={({ isActive }) =>
+        `px-3 py-2 rounded-lg flex items-center gap-3 font-semibold relative overflow-hidden group ${
+          isActive
+            ? "bg-gray-800 dark:bg-gray-700"
+            : "hover:bg-gray-700 dark:hover:bg-gray-700"
+        }`
+      }
+    >
+      <motion.div
+        className="flex-shrink-0 relative"
+        whileHover={{ scale: 1.1, rotate: 5 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        <item.icon className="w-5 h-5 text-indigo-400 group-hover:text-indigo-300 transition-all duration-300 drop-shadow-sm group-hover:drop-shadow-[0_0_2px_theme(colors.indigo.400/0.6)]" />
+      </motion.div>
+      <motion.span
+        whileHover={{ x: 4 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        {item.label}
+      </motion.span>
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0" // Reduced opacity for subtler shine
+        initial={{ x: "-100%" }}
+        whileHover={{ x: "100%", opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+      />
+    </NavLink>
+  );
 
   return (
     <div className="flex h-screen">
@@ -45,26 +82,21 @@ export default function MainLayout({
         <h1 className="text-2xl font-bold mb-6">CarDetailing</h1>
         <nav className="space-y-2 flex-1 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-700 transition ${
-                  isActive ? "bg-gray-800 dark:bg-gray-700 font-semibold" : ""
-                }`
-              }
-            >
-              {item.label}
-            </NavLink>
+            <NavItem key={item.path} item={item} />
           ))}
         </nav>
 
-        <div className="space-y-2">
+        <div className="space-y-2 mt-4 border-t border-gray-700 pt-4">
+          {authStore.profile && (
+            <div className="text-sm text-gray-400 mb-2">
+              {authStore.profile.role === "admin" ? "Admin" : "User"}
+            </div>
+          )}
           <div>
             <Button
               variant="menu"
               onClick={toggleDarkMode}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full justify-start"
             >
               <motion.span
                 key={darkMode ? "sun" : "moon"}
@@ -78,9 +110,9 @@ export default function MainLayout({
                 }}
               >
                 {darkMode ? (
-                  <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200 group-hover:text-yellow-300" />
+                  <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200" />
                 ) : (
-                  <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200 group-hover:text-gray-200" />
+                  <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200" />
                 )}
               </motion.span>
               <p className="text-gray-100">
@@ -96,7 +128,7 @@ export default function MainLayout({
                 toast.success("Pomyślnie wylogowano");
                 authStore.logout();
               }}
-              className="flex items-start gap-2 text-gray-300"
+              className="flex items-center gap-2 w-full justify-start text-gray-300"
             >
               <FiLogOut className="w-5 h-5" />
               <p className="text-gray-100">Logout</p>
@@ -134,25 +166,20 @@ export default function MainLayout({
       >
         <div className="p-4 space-y-2">
           {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-700 transition ${
-                  isActive ? "bg-gray-800 dark:bg-gray-700 font-semibold" : ""
-                }`
-              }
-              onClick={() => setIsOpen(false)}
-            >
-              {item.label}
-            </NavLink>
+            <NavItem key={item.path} item={item} />
           ))}
+
+          {authStore.profile && (
+            <div className="text-sm text-gray-400 py-2">
+              {authStore.profile.role === "admin" ? "Admin" : "User"}
+            </div>
+          )}
 
           <div>
             <Button
               variant="menu"
               onClick={toggleDarkMode}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full justify-start"
             >
               <motion.span
                 key={darkMode ? "sun" : "moon"}
@@ -166,9 +193,9 @@ export default function MainLayout({
                 }}
               >
                 {darkMode ? (
-                  <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200 group-hover:text-yellow-300" />
+                  <HiSun className="w-5 h-5 text-yellow-400 transition-colors duration-200" />
                 ) : (
-                  <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200 group-hover:text-gray-200" />
+                  <HiMoon className="w-5 h-5 text-gray-300 transition-colors duration-200" />
                 )}
               </motion.span>
               <p className="text-gray-100">
@@ -180,8 +207,11 @@ export default function MainLayout({
           <div>
             <Button
               variant="menu"
-              onClick={() => authStore.logout()}
-              className="flex items-start gap-2 text-gray-300"
+              onClick={() => {
+                toast.success("Pomyślnie wylogowano");
+                authStore.logout();
+              }}
+              className="flex items-center gap-2 w-full justify-start text-gray-300"
             >
               <FiLogOut className="w-5 h-5" />
               <p className="text-gray-100">Logout</p>

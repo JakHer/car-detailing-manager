@@ -1,6 +1,5 @@
 import { observer } from "mobx-react-lite";
 import Card, { STATUS_COLORS } from "../../components/Card/Card";
-import Title from "../../components/Title/Title";
 import { clientsStore } from "../../stores/ClientsStore";
 import { servicesStore } from "../../stores/ServicesStore";
 import { ordersStore, type OrderStatus } from "../../stores/OrdersStore";
@@ -16,6 +15,8 @@ import {
   Bar,
 } from "recharts";
 import { motion } from "framer-motion";
+import PageHeader from "../../components/PageHeader/PageHeader";
+import { HiHome } from "react-icons/hi";
 
 const Dashboard = observer(() => {
   const statusCounts = ordersStore.orders.reduce((acc, order) => {
@@ -104,8 +105,12 @@ const Dashboard = observer(() => {
     dailyRevenue().find((r) => r.date === today)?.revenue || 0;
 
   return (
-    <div className="space-y-6">
-      <Title>Dashboard</Title>
+    <div>
+      <PageHeader
+        icon={<HiHome />}
+        title="Dashboard"
+        subtitle="Podsumowanie działalności i statystyki"
+      />
 
       <motion.div
         className="grid gap-6"

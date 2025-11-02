@@ -14,6 +14,8 @@ import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
 import FilterBar from "../../components/FilterBar/FilterBar";
 import { FiEdit, FiTrash2, FiEye, FiEyeOff, FiPlus } from "react-icons/fi";
 import { STATUS_COLORS } from "../../components/Card/Card";
+import PageHeader from "../../components/PageHeader/PageHeader";
+import { HiClipboard } from "react-icons/hi";
 
 export const STATUS_OPTIONS: OrderStatus[] = [
   "Nowe",
@@ -169,16 +171,20 @@ const OrdersPage = observer(() => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Zlecenia</h1>
-        <Button
-          onClick={() => openModal(null, "add")}
-          variant="primary"
-          className="flex items-center gap-2"
-        >
-          <FiPlus />
-        </Button>
-      </div>
+      <PageHeader
+        icon={<HiClipboard />}
+        title="Zlecenia"
+        subtitle="Zarządzaj zleceniami i statusami"
+        rightContent={
+          <Button
+            onClick={() => openModal(null, "add")}
+            variant="primary"
+            className="flex items-center gap-2"
+          >
+            <FiPlus />
+          </Button>
+        }
+      />
 
       <FilterBar
         searchValue={ordersStore.searchTerm}

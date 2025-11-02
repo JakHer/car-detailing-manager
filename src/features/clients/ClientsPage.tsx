@@ -11,6 +11,8 @@ import ExpandableTable, {
 } from "../../components/ExpandableTable/ExpandableTable";
 import FilterBar from "../../components/FilterBar/FilterBar";
 import { STATUS_COLORS } from "../../components/Card/Card";
+import PageHeader from "../../components/PageHeader/PageHeader";
+import { HiUsers } from "react-icons/hi";
 
 const ClientsPage = observer(() => {
   const [modalClient, setModalClient] = useState<Client | null>(null);
@@ -254,16 +256,20 @@ const ClientsPage = observer(() => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Klienci</h1>
-        <Button
-          onClick={() => openModal(null, "add")}
-          variant="primary"
-          className="flex items-center gap-2"
-        >
-          <FiUserPlus />
-        </Button>
-      </div>
+      <PageHeader
+        icon={<HiUsers />}
+        title="Klienci"
+        subtitle="Zarządzaj klientami i ich danymi"
+        rightContent={
+          <Button
+            onClick={() => openModal(null, "add")}
+            variant="primary"
+            className="flex items-center gap-2"
+          >
+            <FiUserPlus />
+          </Button>
+        }
+      />
 
       <FilterBar
         searchValue={clientsStore.searchTerm}

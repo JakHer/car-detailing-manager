@@ -7,6 +7,8 @@ import ServicesPage from "../features/services/ServicesPage";
 import ProtectedRoute from "./ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import LoginPage from "../features/login/LoginPage";
+import AdminPage from "../features/admin/AdminPage";
+import ProgressBar from "../components/ProgressBar/ProgressBar";
 
 function App() {
   return (
@@ -20,6 +22,7 @@ function App() {
       />
 
       <BrowserRouter>
+        <ProgressBar />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -32,6 +35,7 @@ function App() {
                     <Route path="clients" element={<ClientsPage />} />
                     <Route path="orders" element={<OrdersPage />} />
                     <Route path="services" element={<ServicesPage />} />
+                    <Route path="admin" element={<AdminPage />} />
                     <Route
                       path="*"
                       element={
