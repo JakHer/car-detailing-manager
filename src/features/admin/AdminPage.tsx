@@ -20,10 +20,13 @@ const AdminPage = observer(() => {
     newRole: "user" | "admin";
   } | null>(null);
 
+  const isGlobalLoading = authStore.loading || authStore.profileLoading;
+
   useEffect(() => {
     const loadProfiles = async () => {
       if (authStore.profile?.role !== "admin") {
         toast.error("Brak dostępu do panelu admina");
+        setLoading(false);
         return;
       }
       try {
@@ -39,8 +42,10 @@ const AdminPage = observer(() => {
       }
     };
 
-    loadProfiles();
-  }, []);
+    if (!isGlobalLoading) {
+      loadProfiles();
+    }
+  }, [isGlobalLoading]);
 
   const openConfirm = (userId: string, newRole: "user" | "admin") => {
     if (userId === authStore.user?.id) {
@@ -80,7 +85,7 @@ const AdminPage = observer(() => {
     setConfirmAction(null);
   };
 
-  if (authStore.loading || authStore.profileLoading || loading) {
+  if (isGlobalLoading) {
     return (
       <Loader
         text="Ładowanie panelu admina..."
@@ -186,26 +191,35 @@ const AdminPage = observer(() => {
         }
       />
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <ExpandableTable
-          data={allProfiles}
-          columns={columns}
-          renderActions={renderActions}
-          keyField="id"
-          expandedId={null}
-        />
-      </div>
-
-      {allProfiles.length === 0 && (
-        <div className="text-center py-12">
-          <HiUserCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-            Brak użytkowników
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            Na razie nie ma innych użytkowników. Dodaj ich przez rejestrację.
-          </p>
+      {loading ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-8">
+          <Loader text="Ładowanie użytkowników..." size="md" />
         </div>
+      ) : (
+        <>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <ExpandableTable
+              data={allProfiles}
+              columns={columns}
+              renderActions={renderActions}
+              keyField="id"
+              expandedId={null}
+            />
+          </div>
+
+          {allProfiles.length === 0 && (
+            <div className="text-center py-12">
+              <HiUserCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Brak użytkowników
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Na razie nie ma innych użytkowników. Dodaj ich przez
+                rejestrację.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       <AdminModal
