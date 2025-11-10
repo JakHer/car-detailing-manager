@@ -2,17 +2,13 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import Button from "../components/Button/Button";
 import { HiSun, HiMoon, HiHome, HiUsers, HiClipboard } from "react-icons/hi";
-import { HiCog, HiWrench } from "react-icons/hi2";
+import { HiCog, HiTruck, HiWrench } from "react-icons/hi2";
 import { motion } from "framer-motion";
 import { authStore } from "../stores/AuthStore";
 import { FiLogOut } from "react-icons/fi";
 import toast from "react-hot-toast";
 
-export default function MainLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -36,6 +32,7 @@ export default function MainLayout({
   const navItems = [
     { path: "/", label: "Dashboard", icon: HiHome },
     { path: "/clients", label: "Klienci", icon: HiUsers },
+    { path: "/cars", label: "Samochody", icon: HiTruck },
     { path: "/services", label: "Usługi", icon: HiWrench },
     { path: "/orders", label: "Zlecenia", icon: HiClipboard },
     ...(authStore.profile?.role === "admin"
@@ -225,4 +222,6 @@ export default function MainLayout({
       </main>
     </div>
   );
-}
+};
+
+export default MainLayout;

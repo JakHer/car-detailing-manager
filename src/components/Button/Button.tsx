@@ -3,12 +3,12 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: "sm" | "md" | "icon";
 }
 
-export default function Button({
+const Button = ({
   variant = "primary",
   size = "md",
   className = "",
   ...props
-}: ButtonProps) {
+}: ButtonProps) => {
   const base = `
     inline-flex items-center justify-center gap-2
     rounded-md font-medium transition-all duration-200
@@ -49,4 +49,6 @@ export default function Button({
       {...props}
     />
   );
-}
+};
+
+export default Button;

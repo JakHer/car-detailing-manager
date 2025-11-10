@@ -46,6 +46,9 @@ const LoginPage = observer(() => {
         initialValues={initialValues}
         validationSchema={LoginSchema}
         onSubmit={handleSubmit}
+        enableReinitialize
+        validateOnBlur
+        validateOnChange
       >
         {({ errors, touched, isSubmitting }) => (
           <Form className="max-w-sm mx-auto p-6 space-y-4 bg-gray-800 rounded-xl shadow">

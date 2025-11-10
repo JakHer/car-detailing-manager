@@ -6,11 +6,11 @@ interface ButtonGroupProps {
   align?: "left" | "center" | "right";
 }
 
-export default function ButtonGroup({
+const ButtonGroup = ({
   children,
   className = "",
   align = "left",
-}: ButtonGroupProps) {
+}: ButtonGroupProps) => {
   const alignment =
     align === "center"
       ? "justify-center"
@@ -25,4 +25,6 @@ export default function ButtonGroup({
       {children}
     </div>
   );
-}
+};
+
+export default ButtonGroup;

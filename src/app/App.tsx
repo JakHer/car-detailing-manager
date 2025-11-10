@@ -9,8 +9,9 @@ import { Toaster } from "react-hot-toast";
 import LoginPage from "../features/login/LoginPage";
 import AdminPage from "../features/admin/AdminPage";
 import ProgressBar from "../components/ProgressBar/ProgressBar";
+import CarsPage from "../features/cars/CarsPage";
 
-function App() {
+const App = () => {
   return (
     <>
       <Toaster
@@ -33,6 +34,7 @@ function App() {
                   <Routes>
                     <Route index element={<DashboardPage />} />
                     <Route path="clients" element={<ClientsPage />} />
+                    <Route path="cars" element={<CarsPage />} />
                     <Route path="orders" element={<OrdersPage />} />
                     <Route path="services" element={<ServicesPage />} />
                     <Route path="admin" element={<AdminPage />} />
@@ -53,6 +55,6 @@ function App() {
       </BrowserRouter>
     </>
   );
-}
+};
 
 export default App;

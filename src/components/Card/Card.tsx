@@ -27,7 +27,7 @@ export const STATUS_COLORS: Record<
   Anulowane: { bg: "bg-red-200", text: "text-red-800", hex: "#ef4444" },
 };
 
-export default function Card({
+const Card = ({
   title,
   status,
   actionLabel,
@@ -35,7 +35,7 @@ export default function Card({
   children,
   className = "",
   compact = false,
-}: CardProps) {
+}: CardProps) => {
   return (
     <div
       className={`border rounded-xl shadow-sm bg-white dark:bg-gray-800 w-full transition-colors duration-300
@@ -82,4 +82,6 @@ export default function Card({
       )}
     </div>
   );
-}
+};
+
+export default Card;

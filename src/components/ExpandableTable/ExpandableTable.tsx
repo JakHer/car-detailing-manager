@@ -147,7 +147,7 @@ const ExpandableTable = observer(
                           : undefined
                       }
                     >
-                      <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex items-center gap-1 truncate whitespace-nowrap overflow-hidden">
                         {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
@@ -159,7 +159,7 @@ const ExpandableTable = observer(
                                 header.column.getIsSorted() === "asc" ? 0 : 180,
                             }}
                             transition={{ duration: 0.2 }}
-                            className="inline-block"
+                            className="inline-block flex-shrink-0"
                           >
                             <FiChevronUp />
                           </motion.span>

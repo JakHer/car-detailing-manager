@@ -1,5 +1,5 @@
 import { makeAutoObservable, observable, reaction } from "mobx";
-import type { Client } from "./ClientsStore";
+import type { Client, Car } from "./ClientsStore";
 import { MOCK_ORDERS } from "../mocks/mocks";
 import { parseLocalDate, parseLocalDateEnd } from "../utils/dateUtils";
 
@@ -20,6 +20,7 @@ export interface OrderServiceSnapshot {
 export interface Order {
   id: number;
   client: Client;
+  car?: Car;
   services: OrderServiceSnapshot[];
   status: OrderStatus;
   createdAt: string;
@@ -89,8 +90,9 @@ export class OrdersStore {
     }>
   ) {
     if (filters.searchTerm !== undefined) this.searchTerm = filters.searchTerm;
-    if (filters.statusFilter !== undefined)
+    if ("statusFilter" in filters) {
       this.statusFilter = filters.statusFilter;
+    }
     if (filters.dateFrom !== undefined) this.dateFrom = filters.dateFrom;
     if (filters.dateTo !== undefined) this.dateTo = filters.dateTo;
   }
@@ -135,6 +137,7 @@ export class OrdersStore {
     if (!order) return;
 
     if (updated.client) order.client = updated.client;
+    if (updated.car) order.car = updated.car;
     if (updated.services)
       order.services = updated.services.map((s) => ({ ...s }));
     if (updated.status) order.status = updated.status;

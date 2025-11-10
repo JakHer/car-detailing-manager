@@ -3,7 +3,7 @@ interface TitleProps {
   className?: string;
 }
 
-export default function Title({ children, className = "" }: TitleProps) {
+const Title = ({ children, className = "" }: TitleProps) => {
   return (
     <h2
       className={`text-3xl font-bold text-gray-800 dark:text-gray-100 ${className}`}
@@ -11,4 +11,6 @@ export default function Title({ children, className = "" }: TitleProps) {
       {children}
     </h2>
   );
-}
+};
+
+export default Title;

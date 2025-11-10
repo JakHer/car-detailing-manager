@@ -56,6 +56,20 @@ const OrdersPage = observer(() => {
       enableSorting: true,
     },
     {
+      id: "car",
+      header: "Samochód",
+      accessor: (o) => (o.car ? `${o.car.make} ${o.car.model}` : ""),
+      render: (o) =>
+        o.car ? (
+          <span className="font-medium">
+            {o.car.make} {o.car.model} ({o.car.license_plate})
+          </span>
+        ) : (
+          <span className="italic text-gray-500 dark:text-gray-400">Brak</span>
+        ),
+      enableSorting: true,
+    },
+    {
       id: "phone",
       header: "Telefon",
       accessor: (o) => o.client.phone || "-",
@@ -94,6 +108,18 @@ const OrdersPage = observer(() => {
 
   const renderExpanded = (order: Order) => (
     <div className="space-y-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-sm overflow-x-auto border border-gray-200 dark:border-gray-400">
+      {order.car && (
+        <div>
+          <span className="font-semibold text-gray-700 dark:text-gray-200">
+            Samochód:
+          </span>
+          <p className="mt-1 text-gray-600 dark:text-gray-300">
+            {order.car.make} {order.car.model} ({order.car.license_plate})
+            {order.car.color && `, ${order.car.color}`}
+            {order.car.year && `, ${order.car.year}`}
+          </p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
         <span className="font-semibold text-gray-700 dark:text-gray-200">
           Status:
@@ -191,13 +217,12 @@ const OrdersPage = observer(() => {
         onSearchChange={(v) => ordersStore.setFilters({ searchTerm: v })}
         statusOptions={STATUS_OPTIONS}
         statusValue={ordersStore.statusFilter}
-        onStatusChange={(v) =>
+        onStatusChange={(v) => {
           ordersStore.setFilters({
-            statusFilter: STATUS_OPTIONS.includes(v as OrderStatus)
-              ? (v as OrderStatus)
-              : undefined,
-          })
-        }
+            statusFilter:
+              v === "" || v === "Wszystkie" ? undefined : (v as OrderStatus),
+          });
+        }}
         dateFrom={ordersStore.dateFrom}
         dateTo={ordersStore.dateTo}
         onDateFromChange={(v) => ordersStore.setFilters({ dateFrom: v })}

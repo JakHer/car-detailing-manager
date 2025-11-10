@@ -1,15 +1,15 @@
-import { clientsStore } from "../../stores/ClientsStore";
+import { clientsStore, type Car } from "../../stores/ClientsStore";
 import { servicesStore } from "../../stores/ServicesStore";
 import {
   ordersStore,
   type Order,
   type OrderStatus,
 } from "../../stores/OrdersStore";
+import { toast } from "react-hot-toast";
 import BaseModal from "../../components/BaseModal/BaseModal";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import { FiAlertCircle } from "react-icons/fi";
-import clsx from "clsx";
+import { FormField } from "../../components/FormField/FormField";
 
 interface OrderModalProps {
   isOpen: boolean;
@@ -28,7 +28,12 @@ const STATUS_OPTIONS: OrderStatus[] = [
 ];
 
 const OrderSchema = Yup.object().shape({
-  clientId: Yup.number().required("Wybierz klienta"),
+  clientId: Yup.string().required("Wybierz klienta"),
+  carId: Yup.string().when("clientId", {
+    is: (clientId: string) => clientId !== "",
+    then: (schema) => schema.required("Wybierz samochód"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
   serviceIds: Yup.array()
     .of(Yup.number())
     .min(1, "Wybierz przynajmniej jedną usługę"),
@@ -37,14 +42,10 @@ const OrderSchema = Yup.object().shape({
   createdAt: Yup.string().required("Wybierz datę zlecenia"),
 });
 
-export default function OrderModal({
-  isOpen,
-  onClose,
-  order,
-  mode,
-}: OrderModalProps) {
+const OrderModal = ({ isOpen, onClose, order, mode }: OrderModalProps) => {
   const initialValues = {
-    clientId: order?.client.id || "",
+    clientId: order?.client.id?.toString() || "",
+    carId: order?.car?.id?.toString() || "",
     serviceIds: order?.services.map((s) => s.id) || [],
     status: order?.status || "Przyjęte",
     notes: order?.notes || "",
@@ -54,16 +55,25 @@ export default function OrderModal({
   };
 
   const handleSubmit = (values: typeof initialValues) => {
-    const client = clientsStore.clients.find((c) => c.id === values.clientId)!;
+    const client = clientsStore.clients.find((c) => c.id === values.clientId);
+    if (!client) {
+      toast.error("Nieprawidłowy klient wybrany");
+      return;
+    }
+    const car = client.cars.find((c) => c.id === values.carId);
+    if (values.clientId && !car) {
+      toast.error("Nieprawidłowy samochód wybrany");
+      return;
+    }
     const services = servicesStore.services.filter((s) =>
       values.serviceIds.includes(s.id)
     );
-
     const createdAtISO = new Date(values.createdAt).toISOString();
 
     if (order && mode === "edit") {
       ordersStore.updateOrder(order.id, {
         client,
+        car,
         services,
         status: values.status,
         notes: values.notes,
@@ -72,13 +82,13 @@ export default function OrderModal({
     } else if (mode === "add") {
       ordersStore.addOrder({
         client,
+        car,
         services,
         status: values.status,
         notes: values.notes,
         createdAt: createdAtISO,
       });
     }
-
     onClose();
   };
 
@@ -120,33 +130,33 @@ export default function OrderModal({
       validationSchema={OrderSchema}
       onSubmit={handleSubmit}
       enableReinitialize
-      validateOnChange={false}
-      validateOnBlur={true}
+      validateOnBlur
+      validateOnChange
     >
-      {({ values, setFieldValue, errors, touched, submitForm }) => (
-        <BaseModal
-          isOpen={isOpen}
-          onClose={onClose}
-          title={title}
-          mode={mode}
-          onSave={() => submitForm()}
-          renderBody={() => (
-            <Form className="flex flex-col space-y-3">
-              {/* Client select */}
-              <div className="relative">
-                <Field
+      {({ values, setFieldValue, submitForm, errors, touched }) => {
+        const selectedClient = clientsStore.clients.find(
+          (c) => c.id === values.clientId
+        );
+
+        return (
+          <BaseModal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={title}
+            mode={mode}
+            onSave={() => submitForm()}
+            renderBody={() => (
+              <Form className="flex flex-col space-y-4 m-1">
+                <FormField
                   as="select"
                   name="clientId"
-                  className={clsx(
-                    "border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
-                    errors.clientId && touched.clientId
-                      ? "border-red-500 animate-shake"
-                      : "border-gray-300 dark:border-gray-600"
-                  )}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                    setFieldValue("clientId", Number(e.target.value))
-                  }
-                  value={values.clientId}
+                  label="Klient"
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    setFieldValue("clientId", e.target.value);
+                    if (e.target.value !== values.clientId) {
+                      setFieldValue("carId", "");
+                    }
+                  }}
                 >
                   <option value="">Wybierz klienta</option>
                   {clientsStore.clients.map((c) => (
@@ -154,111 +164,88 @@ export default function OrderModal({
                       {c.name}
                     </option>
                   ))}
-                </Field>
-                {errors.clientId && touched.clientId && (
-                  <div className="absolute right-2 top-2.5 text-red-500">
-                    <FiAlertCircle size={18} title={errors.clientId} />
-                  </div>
-                )}
-                <ErrorMessage
-                  name="clientId"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
+                </FormField>
 
-              {/* Services checkboxes */}
-              <div className="flex flex-col max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 px-3 py-2 rounded space-y-1">
-                {servicesStore.services.map((s) => (
-                  <label
-                    key={s.id}
-                    className="flex items-center gap-2 cursor-pointer dark:text-gray-100 text-gray-900"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={values.serviceIds.includes(s.id)}
-                      onChange={() =>
-                        setFieldValue(
-                          "serviceIds",
-                          values.serviceIds.includes(s.id)
-                            ? values.serviceIds.filter((id) => id !== s.id)
-                            : [...values.serviceIds, s.id]
-                        )
-                      }
-                      className="form-checkbox accent-cyan-500"
-                    />
-                    {s.name} ({s.price} zł)
+                {values.clientId && selectedClient && (
+                  <FormField as="select" name="carId" label="Samochód">
+                    {selectedClient.cars.length === 0 ? (
+                      <option value="" disabled>
+                        Brak samochodów dla wybranego klienta
+                      </option>
+                    ) : (
+                      <>
+                        <option value="">Wybierz samochód</option>
+                        {selectedClient.cars.map((car: Car) => (
+                          <option key={car.id} value={car.id}>
+                            {car.make} {car.model} ({car.license_plate})
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </FormField>
+                )}
+
+                <div>
+                  <label className="text-sm font-medium mb-1 block dark:text-gray-100 text-gray-900">
+                    Usługi
                   </label>
-                ))}
-                {errors.serviceIds && touched.serviceIds && (
-                  <div className="text-red-500 text-sm mt-1">
-                    {errors.serviceIds as string}
+                  <div className="flex flex-col max-h-40 overflow-y-auto border border-gray-300 dark:border-gray-600 px-3 py-2 rounded space-y-1">
+                    {servicesStore.services.map((s) => (
+                      <label
+                        key={s.id}
+                        className="flex items-center gap-2 cursor-pointer dark:text-gray-100 text-gray-900"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={values.serviceIds.includes(s.id)}
+                          onChange={() =>
+                            setFieldValue(
+                              "serviceIds",
+                              values.serviceIds.includes(s.id)
+                                ? values.serviceIds.filter((id) => id !== s.id)
+                                : [...values.serviceIds, s.id]
+                            )
+                          }
+                          className="form-checkbox accent-cyan-500"
+                        />
+                        {s.name} ({s.price} zł)
+                      </label>
+                    ))}
                   </div>
-                )}
-              </div>
-
-              {/* Status select */}
-              <Field
-                as="select"
-                name="status"
-                className={clsx(
-                  "border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
-                  errors.status && touched.status
-                    ? "border-red-500 animate-shake"
-                    : "border-gray-300 dark:border-gray-600"
-                )}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </Field>
-              <ErrorMessage
-                name="status"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
-
-              {/* Notes */}
-              <Field
-                as="textarea"
-                name="notes"
-                placeholder="Notatki"
-                className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300"
-              />
-
-              <div className="relative">
-                <label className="text-sm font-medium mb-1 block dark:text-gray-100 text-gray-900">
-                  Data zlecenia
-                </label>
-                <input
-                  type="datetime-local"
-                  name="createdAt"
-                  value={values.createdAt}
-                  onChange={(e) => setFieldValue("createdAt", e.target.value)}
-                  className={clsx(
-                    "border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100",
-                    errors.createdAt && touched.createdAt
-                      ? "border-red-500 animate-shake"
-                      : "border-gray-300 dark:border-gray-600"
+                  {errors.serviceIds && touched.serviceIds && (
+                    <div className="text-red-500 text-sm mt-1">
+                      {errors.serviceIds as string}
+                    </div>
                   )}
+                </div>
+
+                <FormField as="select" name="status" label="Status">
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </FormField>
+
+                <FormField
+                  as="textarea"
+                  name="notes"
+                  placeholder="Notatki"
+                  label="Notatki"
                 />
-                {errors.createdAt && touched.createdAt && (
-                  <div className="absolute right-2 top-2.5 text-red-500">
-                    <FiAlertCircle size={18} title={errors.createdAt} />
-                  </div>
-                )}
-                <ErrorMessage
+
+                <FormField
                   name="createdAt"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
+                  type="datetime-local"
+                  label="Data zlecenia"
                 />
-              </div>
-            </Form>
-          )}
-        />
-      )}
+              </Form>
+            )}
+          />
+        );
+      }}
     </Formik>
   );
-}
+};
+
+export default OrderModal;

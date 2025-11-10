@@ -1,11 +1,18 @@
 import { observer } from "mobx-react-lite";
-import { useState, useMemo } from "react";
-import { clientsStore, type Client } from "../../stores/ClientsStore";
+import { useState, useMemo, useEffect } from "react";
+import { clientsStore, type Client, type Car } from "../../stores/ClientsStore";
 import { ordersStore, type OrderStatus } from "../../stores/OrdersStore";
 import ClientModal from "./ClientModal";
 import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
-import { FiEdit, FiEye, FiEyeOff, FiTrash2, FiUserPlus } from "react-icons/fi";
+import {
+  FiEdit,
+  FiEye,
+  FiEyeOff,
+  FiTrash2,
+  FiUserPlus,
+  FiPlus,
+} from "react-icons/fi";
 import ExpandableTable, {
   type ExpandableTableColumn,
 } from "../../components/ExpandableTable/ExpandableTable";
@@ -13,19 +20,27 @@ import FilterBar from "../../components/FilterBar/FilterBar";
 import { STATUS_COLORS } from "../../components/Card/Card";
 import PageHeader from "../../components/PageHeader/PageHeader";
 import { HiUsers } from "react-icons/hi";
+import Loader from "../../components/Loader/Loader";
 
 const ClientsPage = observer(() => {
   const [modalClient, setModalClient] = useState<Client | null>(null);
-  const [modalMode, setModalMode] = useState<"add" | "edit" | "delete" | "">(
-    ""
-  );
-  const [expandedClientId, setExpandedClientId] = useState<number | null>(null);
+  const [modalMode, setModalMode] = useState<
+    "add" | "edit" | "delete" | "addCar" | "editCar" | "deleteCar" | ""
+  >("");
+  const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
+
+  useEffect(() => {
+    clientsStore.fetchAllClients();
+  }, []);
 
   const openModal = (
     client: Client | null,
-    mode: "add" | "edit" | "delete"
+    car: Car | null,
+    mode: "add" | "edit" | "delete" | "addCar" | "editCar" | "deleteCar"
   ) => {
     setModalClient(client);
+    setSelectedCar(car);
     setModalMode(mode);
   };
 
@@ -49,6 +64,12 @@ const ClientsPage = observer(() => {
         render: (c) => (
           <span className="truncate max-w-[180px] block">{c.email || "-"}</span>
         ),
+        enableSorting: true,
+      },
+      {
+        header: "Samochody",
+        accessor: (c) => c.cars.length,
+        render: (c) => c.cars.length ?? (c.cars.length || 0),
         enableSorting: true,
       },
       {
@@ -132,73 +153,141 @@ const ClientsPage = observer(() => {
     );
 
     return (
-      <div className="overflow-x-auto border border-gray-200 dark:border-gray-400 rounded mt-2 truncate">
-        <div className="grid grid-cols-4 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
-          <span>Data</span>
-          <span>Suma</span>
-          <span>Status</span>
-          <span>Notatki</span>
+      <div className="space-y-4">
+        <div className="border border-gray-200 dark:border-gray-400 rounded p-4">
+          <h4 className="font-semibold mb-2 flex items-center gap-2">
+            <span>Samochody</span>
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => openModal(client, null, "addCar")}
+              title="Dodaj samochód"
+            >
+              <FiPlus className="w-4 h-4" />
+            </Button>
+          </h4>
+          {client.cars.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-2">
+              Brak samochodów
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {client.cars.map((car) => (
+                <div
+                  key={car.id}
+                  className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">
+                      {car.make} {car.model}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                      ({car.license_plate})
+                    </span>
+                    {car.color && (
+                      <span className="px-2 py-0.5 bg-gray-200 light:text-gray-600 dark:bg-gray-600 rounded text-xs">
+                        {car.color}
+                      </span>
+                    )}
+                  </div>
+                  <ButtonGroup align="right">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      title="Edytuj samochód"
+                      onClick={() => openModal(client, car, "editCar")}
+                    >
+                      <FiEdit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      title="Usuń samochód"
+                      onClick={() => openModal(client, car, "deleteCar")}
+                    >
+                      <FiTrash2 className="w-4 h-4" />
+                    </Button>
+                  </ButtonGroup>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {clientOrders.length === 0 ? (
-          <div className="p-3 text-gray-500 dark:text-gray-400 text-center">
-            Brak zamówień
+        <div className="overflow-x-auto border border-gray-200 dark:border-gray-400 rounded">
+          <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-700 dark:text-gray-200">
+            <span>Data</span>
+            <span>Samochód</span>
+            <span>Suma</span>
+            <span>Status</span>
+            <span>Notatki</span>
           </div>
-        ) : (
-          <div className="space-y-1">
-            {clientOrders.map((order, idx) => (
-              <div
-                key={order.id}
-                className={`grid grid-cols-4 gap-4 p-2 ${
-                  idx % 2 === 0
-                    ? "bg-gray-50 dark:bg-gray-700"
-                    : "bg-gray-100 dark:bg-gray-600"
-                } text-gray-700 dark:text-gray-200 overflow-x-auto whitespace-nowrap block`}
-              >
-                <span className="truncate text-sm">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </span>
 
-                <span className="font-medium whitespace-nowrap truncate">
-                  {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
-                </span>
+          {clientOrders.length === 0 ? (
+            <div className="p-3 text-gray-500 dark:text-gray-400 text-center">
+              Brak zamówień
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {clientOrders.map((order, idx) => (
+                <div
+                  key={order.id}
+                  className={`grid grid-cols-5 gap-4 p-2 ${
+                    idx % 2 === 0
+                      ? "bg-gray-50 dark:bg-gray-700"
+                      : "bg-gray-100 dark:bg-gray-600"
+                  } text-gray-700 dark:text-gray-200 overflow-x-auto whitespace-nowrap block`}
+                >
+                  <span className="truncate text-sm">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </span>
 
-                <div className="flex items-center overflow-hidden whitespace-nowrap text-ellipsis">
+                  <span className="truncate text-sm">
+                    {order.car?.make} {order.car?.model} (
+                    {order.car?.license_plate})
+                  </span>
+
+                  <span className="font-medium whitespace-nowrap truncate">
+                    {order.services.reduce((sSum, s) => sSum + s.price, 0)} zł
+                  </span>
+
+                  <div className="flex items-center overflow-hidden whitespace-nowrap text-ellipsis">
+                    <span
+                      className={`ml-5 inline-block w-3 h-3 rounded-full mr-2 sm:hidden ${
+                        STATUS_COLORS[order.status as OrderStatus]?.bg
+                      }`}
+                      title={order.status}
+                      aria-label={order.status}
+                    />
+
+                    <span
+                      className={`hidden sm:inline-block px-2 py-0.5 text-sm font-semibold rounded ${
+                        STATUS_COLORS[order.status as OrderStatus]?.bg
+                      } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                      title={order.status}
+                    >
+                      {order.status}
+                    </span>
+                  </div>
+
                   <span
-                    className={`ml-5 inline-block w-3 h-3 rounded-full mr-2 sm:hidden ${
-                      STATUS_COLORS[order.status as OrderStatus]?.bg
-                    }`}
-                    title={order.status}
-                    aria-label={order.status}
-                  />
-
-                  <span
-                    className={`hidden sm:inline-block px-2 py-0.5 text-sm font-semibold rounded ${
-                      STATUS_COLORS[order.status as OrderStatus]?.bg
-                    } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
-                    title={order.status}
+                    className="italic text-gray-500 dark:text-gray-400 truncate block"
+                    title={order.notes || "-"}
                   >
-                    {order.status}
+                    {order.notes || "-"}
                   </span>
                 </div>
+              ))}
+            </div>
+          )}
 
-                <span
-                  className="italic text-gray-500 dark:text-gray-400 truncate block"
-                  title={order.notes || "-"}
-                >
-                  {order.notes || "-"}
-                </span>
-              </div>
-            ))}
+          <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-gray-100 border-t border-gray-400 dark:border-gray-600">
+            <span>Razem:</span>
+            <span></span>
+            <span>{totalRevenue.toFixed(2)} zł</span>
+            <span></span>
+            <span></span>
           </div>
-        )}
-
-        <div className="grid grid-cols-5 gap-4 p-2 bg-gray-100 dark:bg-gray-800 font-bold text-gray-900 dark:text-gray-100 border-t border-gray-400 dark:border-gray-600">
-          <span>Razem:</span>
-          <span></span>
-          <span>{totalRevenue.toFixed(2)} zł</span>
-          <span></span>
-          <span></span>
         </div>
       </div>
     );
@@ -216,8 +305,8 @@ const ClientsPage = observer(() => {
             variant="outline"
             title={
               expandedClientId === client.id
-                ? "Ukryj zamówienia"
-                : "Pokaż zamówienia"
+                ? "Ukryj szczegóły"
+                : "Pokaż szczegóły"
             }
             onClick={() =>
               setExpandedClientId(
@@ -237,7 +326,7 @@ const ClientsPage = observer(() => {
           size="icon"
           variant="secondary"
           title="Edytuj klienta"
-          onClick={() => openModal(client, "edit")}
+          onClick={() => openModal(client, null, "edit")}
         >
           <FiEdit className="w-4 h-4" />
         </Button>
@@ -246,13 +335,25 @@ const ClientsPage = observer(() => {
           size="icon"
           variant="destructive"
           title="Usuń klienta"
-          onClick={() => openModal(client, "delete")}
+          onClick={() => openModal(client, null, "delete")}
         >
           <FiTrash2 className="w-4 h-4" />
         </Button>
       </ButtonGroup>
     );
   };
+
+  if (clientsStore.loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader
+          text="Ładowanie klientów..."
+          size="lg"
+          icon={<HiUsers className="w-8 h-8 text-indigo-500" />}
+        />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -262,11 +363,12 @@ const ClientsPage = observer(() => {
         subtitle="Zarządzaj klientami i ich danymi"
         rightContent={
           <Button
-            onClick={() => openModal(null, "add")}
+            onClick={() => openModal(null, null, "add")}
             variant="primary"
             className="flex items-center gap-2"
           >
             <FiUserPlus />
+            Dodaj klienta
           </Button>
         }
       />
@@ -302,7 +404,12 @@ const ClientsPage = observer(() => {
           isOpen={!!modalMode}
           mode={modalMode}
           client={modalClient}
-          onClose={() => setModalMode("")}
+          car={selectedCar}
+          onClose={() => {
+            setModalMode("");
+            setModalClient(null);
+            setSelectedCar(null);
+          }}
         />
       )}
     </div>
