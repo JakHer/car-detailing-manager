@@ -55,12 +55,14 @@ const OrderModal = ({ isOpen, onClose, order, mode }: OrderModalProps) => {
   };
 
   const handleSubmit = (values: typeof initialValues) => {
-    const client = clientsStore.clients.find((c) => c.id === values.clientId);
+    const client = clientsStore.clients.find(
+      (c) => c.id.toString() === values.clientId
+    );
     if (!client) {
       toast.error("Nieprawidłowy klient wybrany");
       return;
     }
-    const car = client.cars.find((c) => c.id === values.carId);
+    const car = client.cars.find((c) => c.id.toString() === values.carId);
     if (values.clientId && !car) {
       toast.error("Nieprawidłowy samochód wybrany");
       return;
@@ -135,7 +137,7 @@ const OrderModal = ({ isOpen, onClose, order, mode }: OrderModalProps) => {
     >
       {({ values, setFieldValue, submitForm, errors, touched }) => {
         const selectedClient = clientsStore.clients.find(
-          (c) => c.id === values.clientId
+          (c) => c.id.toString() === values.clientId
         );
 
         return (
@@ -144,17 +146,23 @@ const OrderModal = ({ isOpen, onClose, order, mode }: OrderModalProps) => {
             onClose={onClose}
             title={title}
             mode={mode}
-            onSave={() => submitForm()}
+            onSave={() => void submitForm()}
             renderBody={() => (
               <Form className="flex flex-col space-y-4 m-1">
                 <FormField
                   as="select"
                   name="clientId"
                   label="Klient"
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                    setFieldValue("clientId", e.target.value);
-                    if (e.target.value !== values.clientId) {
-                      setFieldValue("carId", "");
+                  onChange={(
+                    newValue: string | number | (string | number)[]
+                  ) => {
+                    const value =
+                      typeof newValue === "string"
+                        ? newValue
+                        : newValue.toString();
+                    void setFieldValue("clientId", value);
+                    if (value !== values.clientId) {
+                      void setFieldValue("carId", "");
                     }
                   }}
                 >
@@ -199,7 +207,7 @@ const OrderModal = ({ isOpen, onClose, order, mode }: OrderModalProps) => {
                           type="checkbox"
                           checked={values.serviceIds.includes(s.id)}
                           onChange={() =>
-                            setFieldValue(
+                            void setFieldValue(
                               "serviceIds",
                               values.serviceIds.includes(s.id)
                                 ? values.serviceIds.filter((id) => id !== s.id)

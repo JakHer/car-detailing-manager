@@ -1,7 +1,7 @@
 import { observer } from "mobx-react-lite";
 import { useState, useMemo, useEffect } from "react";
 import { clientsStore, type Client, type Car } from "../../stores/ClientsStore";
-import { ordersStore, type OrderStatus } from "../../stores/OrdersStore";
+import { ordersStore } from "../../stores/OrdersStore";
 import ClientModal from "./ClientModal";
 import Button from "../../components/Button/Button";
 import ButtonGroup from "../../components/ButtonGroup/ButtonGroup";
@@ -31,7 +31,7 @@ const ClientsPage = observer(() => {
   const [selectedCar, setSelectedCar] = useState<Car | null>(null);
 
   useEffect(() => {
-    clientsStore.fetchAllClients();
+    void clientsStore.fetchAllClients();
   }, []);
 
   const openModal = (
@@ -254,7 +254,7 @@ const ClientsPage = observer(() => {
                   <div className="flex items-center overflow-hidden whitespace-nowrap text-ellipsis">
                     <span
                       className={`ml-5 inline-block w-3 h-3 rounded-full mr-2 sm:hidden ${
-                        STATUS_COLORS[order.status as OrderStatus]?.bg
+                        STATUS_COLORS[order.status]?.bg
                       }`}
                       title={order.status}
                       aria-label={order.status}
@@ -262,8 +262,8 @@ const ClientsPage = observer(() => {
 
                     <span
                       className={`hidden sm:inline-block px-2 py-0.5 text-sm font-semibold rounded ${
-                        STATUS_COLORS[order.status as OrderStatus]?.bg
-                      } ${STATUS_COLORS[order.status as OrderStatus]?.text}`}
+                        STATUS_COLORS[order.status]?.bg
+                      } ${STATUS_COLORS[order.status]?.text}`}
                       title={order.status}
                     >
                       {order.status}

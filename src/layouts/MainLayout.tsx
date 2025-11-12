@@ -123,7 +123,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               variant="menu"
               onClick={() => {
                 toast.success("Pomyślnie wylogowano");
-                authStore.logout();
+                void authStore.logout();
               }}
               className="flex items-center gap-2 w-full justify-start text-gray-300"
             >
@@ -206,7 +206,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               variant="menu"
               onClick={() => {
                 toast.success("Pomyślnie wylogowano");
-                authStore.logout();
+                void authStore.logout();
               }}
               className="flex items-center gap-2 w-full justify-start text-gray-300"
             >

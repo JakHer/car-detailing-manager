@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { supabase } from "../lib/supabaseClient";
+import type { PostgrestError } from "@supabase/supabase-js";
 import NProgress from "nprogress";
 
 export interface Car {
@@ -30,7 +31,7 @@ class CarStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchAllCars();
+    void this.fetchAllCars();
   }
 
   private debouncedFetch = () => {
@@ -38,7 +39,7 @@ class CarStore {
       clearTimeout(this.debounceTimer);
     }
     this.debounceTimer = setTimeout(() => {
-      this.fetchAllCars();
+      void this.fetchAllCars();
     }, 300);
   };
 
@@ -72,7 +73,10 @@ class CarStore {
     }
 
     try {
-      const { data, error } = await query;
+      const { data, error } = (await query) as {
+        data: Car[] | null;
+        error: PostgrestError | null;
+      };
 
       if (error) throw error;
 
@@ -123,11 +127,11 @@ class CarStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from("cars")
         .insert({ ...car, client_id: clientId })
         .select()
-        .single();
+        .single()) as { data: Car | null; error: PostgrestError | null };
 
       if (error) throw error;
 
@@ -155,12 +159,12 @@ class CarStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from("cars")
         .update(updated)
         .eq("id", id)
         .select()
-        .single();
+        .single()) as { data: Car | null; error: PostgrestError | null };
 
       if (error) throw error;
 
@@ -191,7 +195,9 @@ class CarStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { error } = await supabase.from("cars").delete().eq("id", id);
+      const { error } = (await supabase.from("cars").delete().eq("id", id)) as {
+        error: PostgrestError | null;
+      };
 
       if (error) throw error;
 

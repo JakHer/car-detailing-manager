@@ -184,7 +184,7 @@ const ClientModal = ({
             <span className="font-semibold">{entityDisplay}</span>?
           </p>
         )}
-        onDelete={handleDelete}
+        onDelete={() => void handleDelete}
       />
     );
   }
@@ -204,7 +204,7 @@ const ClientModal = ({
           onClose={onClose}
           title={title}
           mode={mode}
-          onSave={() => submitForm()}
+          onSave={() => void submitForm()}
           renderBody={() => (
             <Form className="flex flex-col space-y-4 m-1">
               {isClientMode ? (

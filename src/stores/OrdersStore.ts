@@ -41,7 +41,7 @@ export class OrdersStore {
     const stored = localStorage.getItem("orders");
     if (stored) {
       try {
-        this.orders.replace(JSON.parse(stored));
+        this.orders.replace(JSON.parse(stored) as Order[]);
       } catch {
         this.orders.clear();
       }

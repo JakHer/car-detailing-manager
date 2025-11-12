@@ -21,7 +21,7 @@ const CarsPage = observer(() => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
-    carStore.fetchAllCars();
+    void carStore.fetchAllCars();
   }, []);
 
   const openModal = (car: Car | null, mode: "add" | "edit" | "delete") => {

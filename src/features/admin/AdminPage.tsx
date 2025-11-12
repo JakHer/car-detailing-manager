@@ -43,7 +43,7 @@ const AdminPage = observer(() => {
     };
 
     if (!isGlobalLoading) {
-      loadProfiles();
+      void loadProfiles();
     }
   }, [isGlobalLoading]);
 
@@ -226,7 +226,7 @@ const AdminPage = observer(() => {
         isOpen={!!confirmAction}
         onClose={closeConfirm}
         confirmAction={confirmAction}
-        onConfirm={handleConfirm}
+        onConfirm={() => void handleConfirm()}
         allProfiles={allProfiles}
       />
     </div>

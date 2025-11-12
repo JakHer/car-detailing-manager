@@ -18,6 +18,17 @@ import { motion } from "framer-motion";
 import PageHeader from "../../components/PageHeader/PageHeader";
 import { HiHome } from "react-icons/hi";
 
+interface TooltipPayload {
+  dataKey: string;
+  value: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string | number;
+}
+
 const Dashboard = observer(() => {
   const statusCounts = ordersStore.orders.reduce((acc, order) => {
     acc[order.status] = (acc[order.status] || 0) + 1;
@@ -144,7 +155,8 @@ const Dashboard = observer(() => {
                   <YAxis />
                   <Tooltip
                     cursor={{ fill: "transparent" }}
-                    content={({ active, payload, label }) => {
+                    content={(props: CustomTooltipProps) => {
+                      const { active, payload, label } = props;
                       if (active && payload && payload.length) {
                         const total = payload.reduce(
                           (sum, p) => sum + (p.value || 0),
@@ -212,7 +224,7 @@ const Dashboard = observer(() => {
                     {pieData.map((entry) => (
                       <Cell
                         key={entry.name}
-                        fill={STATUS_COLORS[entry.name as OrderStatus].hex}
+                        fill={STATUS_COLORS[entry.name].hex}
                       />
                     ))}
                   </Pie>

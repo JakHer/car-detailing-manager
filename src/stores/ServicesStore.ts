@@ -16,7 +16,7 @@ export class ServicesStore {
     const stored = localStorage.getItem("services");
     if (stored) {
       try {
-        this.services = JSON.parse(stored);
+        this.services = JSON.parse(stored) as Service[];
       } catch {
         this.services = [];
       }

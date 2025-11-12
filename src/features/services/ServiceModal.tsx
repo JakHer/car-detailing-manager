@@ -27,36 +27,28 @@ const ServiceModal = ({
 }: ServiceModalProps) => {
   const initialValues = {
     name: service?.name || "",
-    price: service?.price || "",
+    price: service?.price || 0,
   };
 
-  const handleSubmit = async (values: typeof initialValues) => {
-    try {
-      if (service && mode === "edit") {
-        await servicesStore.updateService(service.id, {
-          name: values.name,
-          price: Number(values.price),
-        });
-      } else {
-        await servicesStore.addService({
-          name: values.name,
-          price: Number(values.price),
-        });
-      }
-      onClose();
-    } catch (error) {
-      console.error("ServiceModal submit error:", error);
+  const handleSubmit = (values: typeof initialValues) => {
+    if (service && mode === "edit") {
+      servicesStore.updateService(service.id, {
+        name: values.name,
+        price: values.price,
+      });
+    } else {
+      servicesStore.addService({
+        name: values.name,
+        price: values.price,
+      });
     }
+    onClose();
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!service) return;
-    try {
-      await servicesStore.deleteService(service.id);
-      onClose();
-    } catch (error) {
-      console.error("ServiceModal delete error:", error);
-    }
+    servicesStore.deleteService(service.id);
+    onClose();
   };
 
   const title =
@@ -79,7 +71,7 @@ const ServiceModal = ({
             <span className="font-semibold">{service?.name}</span>?
           </p>
         )}
-        onDelete={handleDelete}
+        onDelete={() => void handleDelete()}
       />
     );
   }
@@ -99,7 +91,7 @@ const ServiceModal = ({
           onClose={onClose}
           title={title}
           mode={mode}
-          onSave={() => submitForm()}
+          onSave={() => void submitForm()}
           renderBody={() => (
             <Form className="flex flex-col space-y-4 m-1">
               <FormField name="name" placeholder="Nazwa usługi" />

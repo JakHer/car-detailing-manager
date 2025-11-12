@@ -249,7 +249,7 @@ const OrdersPage = observer(() => {
       {modalMode && (
         <OrderModal
           isOpen={!!modalMode}
-          mode={modalMode as "add" | "edit" | "delete"}
+          mode={modalMode}
           order={modalOrder}
           onClose={() => setModalMode("")}
         />

@@ -81,6 +81,27 @@ const ExpandableTable = observer(
           sortingFn: (rowA, rowB, columnId) => {
             const a = rowA.getValue(columnId);
             const b = rowB.getValue(columnId);
+            const toSortableString = (val: unknown): string => {
+              if (typeof val === "string") return val;
+              if (typeof val === "number") return String(val);
+              return "";
+            };
+
+            const sortValuesSafe = (a: unknown, b: unknown): number => {
+              if (a == null && b == null) return 0;
+              if (a == null) return -1;
+              if (b == null) return 1;
+
+              if (typeof a === "number" && typeof b === "number") return a - b;
+
+              return toSortableString(a).localeCompare(
+                toSortableString(b),
+                "pl",
+                {
+                  sensitivity: "base",
+                }
+              );
+            };
 
             if (
               columnId === "status" ||
@@ -91,13 +112,7 @@ const ExpandableTable = observer(
               return indexA - indexB;
             }
 
-            if (a == null && b == null) return 0;
-            if (a == null) return -1;
-            if (b == null) return 1;
-            if (typeof a === "number" && typeof b === "number") return a - b;
-            return String(a).localeCompare(String(b), "pl", {
-              sensitivity: "base",
-            });
+            return sortValuesSafe(a, b);
           },
         }
       );

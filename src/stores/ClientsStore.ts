@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import { supabase } from "../lib/supabaseClient";
 import { ordersStore } from "./OrdersStore";
+import type { PostgrestError } from "@supabase/supabase-js";
 import NProgress from "nprogress";
 
 export interface Car {
@@ -43,13 +44,13 @@ class ClientsStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.fetchAllClients();
+    void this.fetchAllClients();
   }
 
   private debouncedFetch = () => {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     this.debounceTimer = setTimeout(() => {
-      this.fetchAllClients();
+      void this.fetchAllClients();
     }, 300);
   };
 
@@ -98,7 +99,10 @@ class ClientsStore {
     }
 
     try {
-      const { data, error } = await query;
+      const { data, error } = (await query) as {
+        data: Client[] | null;
+        error: PostgrestError | null;
+      };
       if (error) throw error;
 
       runInAction(() => {
@@ -163,7 +167,7 @@ class ClientsStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from("clients")
         .insert(client)
         .select(
@@ -182,7 +186,7 @@ class ClientsStore {
           )
         `
         )
-        .single();
+        .single()) as { data: Client | null; error: PostgrestError | null };
 
       if (error) throw error;
 
@@ -190,7 +194,11 @@ class ClientsStore {
         if (data) this.clients.unshift({ ...data, cars: data.cars ?? [] });
       });
 
-      return { ...data, cars: data.cars ?? [] };
+      if (this.searchTerm || this.dateFrom || this.dateTo) {
+        await this.fetchAllClients();
+      }
+
+      return data ? { ...data, cars: data.cars ?? [] } : null;
     } catch (error) {
       console.error("Add client error:", error);
       throw error;
@@ -206,11 +214,11 @@ class ClientsStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from("cars")
         .insert({ ...car, client_id: clientId })
         .select()
-        .single();
+        .single()) as { data: Car | null; error: PostgrestError | null };
 
       if (error) throw error;
 
@@ -234,7 +242,7 @@ class ClientsStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { data, error } = await supabase
+      const { data, error } = (await supabase
         .from("clients")
         .update(updated)
         .eq("id", id)
@@ -254,7 +262,7 @@ class ClientsStore {
           )
         `
         )
-        .single();
+        .single()) as { data: Client | null; error: PostgrestError | null };
 
       if (error) throw error;
 
@@ -265,7 +273,11 @@ class ClientsStore {
         }
       });
 
-      return { ...data, cars: data.cars ?? [] };
+      if (this.searchTerm || this.dateFrom || this.dateTo) {
+        await this.fetchAllClients();
+      }
+
+      return data ? { ...data, cars: data.cars ?? [] } : null;
     } catch (error) {
       console.error("Update client error:", error);
       throw error;
@@ -281,7 +293,12 @@ class ClientsStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { error } = await supabase.from("clients").delete().eq("id", id);
+      const { error } = (await supabase
+        .from("clients")
+        .delete()
+        .eq("id", id)) as {
+        error: PostgrestError | null;
+      };
       if (error) throw error;
 
       runInAction(() => {
@@ -302,7 +319,9 @@ class ClientsStore {
     this.loading = true;
     NProgress.start();
     try {
-      const { error } = await supabase.from("cars").delete().eq("id", id);
+      const { error } = (await supabase.from("cars").delete().eq("id", id)) as {
+        error: PostgrestError | null;
+      };
       if (error) throw error;
 
       await this.fetchAllClients();

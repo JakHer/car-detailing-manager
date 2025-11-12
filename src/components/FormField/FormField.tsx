@@ -73,7 +73,7 @@ export const FormField = ({
                   const value = isMulti
                     ? (val as MultiValue<Option>).map((v) => v.value)
                     : (val as SingleValue<Option>)?.value || "";
-                  form.setFieldValue(name, value);
+                  void form.setFieldValue(name, value);
                   onChange?.(value);
                 }}
                 styles={{
@@ -139,10 +139,12 @@ export const FormField = ({
             return (
               <div className="flex flex-col w-full relative">
                 <DatePicker
-                  selected={field.value ? new Date(field.value) : null}
+                  selected={
+                    field.value ? new Date(field.value as string) : null
+                  }
                   onChange={(date: Date | null) => {
-                    const isoString = date ? date.toISOString() : "";
-                    form.setFieldValue(field.name, isoString);
+                    const isoString = date?.toISOString() ?? "";
+                    void form.setFieldValue(field.name, isoString);
                     onChange?.(isoString);
                   }}
                   showTimeSelect

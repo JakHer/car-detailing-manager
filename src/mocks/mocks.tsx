@@ -4,17 +4,24 @@ import type { Service } from "../stores/ServicesStore";
 
 export const MOCK_CLIENTS: Client[] = [
   {
-    id: 1,
+    id: "1",
     name: "Jan Kowalski",
     phone: "123-456-789",
     email: "jan@example.com",
     notes: "VIP klient",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    cars: [],
   },
   {
-    id: 2,
+    id: "2",
     name: "Anna Nowak",
     phone: "987-654-321",
     email: "anna@example.com",
+    notes: "",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    cars: [],
   },
 ];
 

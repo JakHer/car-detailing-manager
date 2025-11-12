@@ -30,7 +30,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             }
           )}
 
-          {[...Array(4)].map((_, i) => (
+          {Array.from({ length: 4 }, (_, i) => (
             <motion.div
               key={i}
               className="absolute w-1.5 h-1.5 bg-yellow-300/70 dark:bg-amber-200/60 rounded-full shadow-lg" // Slightly larger, more opaque yellow with shadow for pop

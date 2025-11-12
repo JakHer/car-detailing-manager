@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { Formik, Form, Field, ErrorMessage, type FormikHelpers } from "formik";
 import * as Yup from "yup";
 import { authStore } from "../../stores/AuthStore";
 import { FiAlertCircle } from "react-icons/fi";
@@ -23,22 +23,25 @@ const LoginPage = observer(() => {
     password: "",
   };
 
-  const handleSubmit = async (values: typeof initialValues) => {
+  const handleSubmit = async (
+    values: typeof initialValues,
+    { setSubmitting }: FormikHelpers<typeof initialValues>
+  ) => {
     try {
       await authStore.login(values.email, values.password);
       toast.success("Pomyślnie zalogowano");
 
-      navigate("/");
+      await navigate("/");
     } catch (err: unknown) {
       if (err instanceof Error) {
         toast.error(err.message);
       } else {
         toast.error("Wystąpił nieoczekiwany błąd");
       }
+    } finally {
+      setSubmitting?.(false);
     }
   };
-
-  console.log("authStore.loading", authStore.loading);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">

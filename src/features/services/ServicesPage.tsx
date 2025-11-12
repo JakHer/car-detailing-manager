@@ -109,7 +109,7 @@ const ServicesPage = observer(() => {
         <ServiceModal
           isOpen={!!modalMode}
           service={modalService}
-          mode={modalMode as "add" | "edit" | "delete"}
+          mode={modalMode}
           onClose={closeModal}
         />
       )}

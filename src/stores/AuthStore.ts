@@ -27,7 +27,7 @@ class AuthStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.initAuth();
+    void this.initAuth();
   }
 
   private debouncedFetchProfile = debounce(this.fetchProfile.bind(this), 500);
@@ -57,7 +57,7 @@ class AuthStore {
             !this.isFetchingProfile &&
             document.visibilityState === "visible"
           ) {
-            this.debouncedFetchProfile();
+            void this.debouncedFetchProfile();
           }
         }, 0);
       } else if (!this.user) {
